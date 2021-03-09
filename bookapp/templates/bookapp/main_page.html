@@ -1,0 +1,22 @@
+{% extends 'bookapp/base_bookapp.html' %}
+
+{% block nav_categorys %}
+<div class="container container--nav">
+    <nav class="nav__category">
+        {% for main_category in main_categorys %}
+        <div class="category__item">{{ main_category.title }}</div>
+        {% endfor %}
+    </nav>
+</div>
+{% endblock nav_categorys %}
+
+{% block sliders %}
+<section class="section--slider">
+    <div class="container container--slider">
+        <div class="slider"></div>
+        <div class="deal_of_mouth"></div>
+    </div>
+</section>
+{% endblock sliders %}
+
+

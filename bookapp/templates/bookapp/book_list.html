@@ -1,0 +1,23 @@
+{% extends 'bookapp/base_bookapp.html' %}
+
+
+{% block promotions_titles %}
+    
+<nav class="promotions">
+    <div class="promotion__category">
+        <div class="promotion__item active">{{ category_title }}</div>
+    </div>
+</nav>
+
+{% endblock promotions_titles %}
+    
+
+{% block products %}
+
+    
+    {% for book in books  %}
+        {% include 'bookapp/include/book_card.html' %}
+    {% endfor %}
+        
+
+{% endblock products %}
