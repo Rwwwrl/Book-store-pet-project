@@ -13,7 +13,7 @@ class MainPage(ListView):
     context_object_name = 'books'
 
     # пагинация
-    paginate_by = 1
+    paginate_by = 4
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -38,7 +38,7 @@ class BookList(ListView):
     context_object_name = 'books'
     template_name = 'bookapp/book_list.html'
 
-    paginate_by = 1
+    paginate_by = 4
 
     def dispatch(self, request, *args, **kwargs):
         self.under_category = UnderCategory.objects.filter(slug=kwargs.get('under_category_slug'))[0]

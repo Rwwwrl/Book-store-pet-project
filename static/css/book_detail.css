@@ -1,0 +1,283 @@
+/* breadcrumbs */
+
+p, h1, h2, h3, h4, h5, h6 {
+    padding: 0;
+    margin: 0
+}
+
+img {
+    display: block;
+}
+
+.breadcrumbs {
+    border: 2px solid #a6a6a6;
+    border-radius: 7px;
+    margin: 9px 0;
+    padding: 8px 0;
+}
+
+.breadcrumbs_item {
+    color: #a6a6a6;
+    font-size: 17px;
+
+}
+
+.breadcrumbs_item::after {
+    display: inline-block;
+    content: '>>';
+    margin: 0 5px;
+}
+
+.breadcrumbs_item:first-child {
+    margin-left: 23px;
+}
+
+.breadcrumbs_item:last-child::after {
+    display: none;
+}
+
+.breadcrumbs_item:hover {
+    color: #79b260;
+}
+
+/* Главная инфа о книге */
+.book_main_info {
+    padding: 27px 31px;
+    border: 1px solid #a6a6a6;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.book_image {
+    max-width: 248px;
+    max-height: 392px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.book_info {
+    max-width: 625px;
+    max-height: 392px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.book__title {
+    font-size: 41px;
+    color: #595959;
+}
+
+.book_shortinfo {
+    font-size: 20px;
+    color: #7e7e7e;
+}
+
+.buy_block {
+    max-width: 612px;
+    max-height: 172px;
+    padding: 20px 18px;
+    border: 1px solid  #a6a6a6;
+    border-radius: 10px;
+}
+
+.buy_info {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.price_info {
+    display: flex;
+    flex-direction: row;
+}
+
+.our_price {
+    display: inline-block;
+    font-size: 36px;
+    color: #015699;
+    margin-right: 10px;
+}
+
+.buy_price {
+    font-size: 36px;
+    color: #eb8585;
+    font-weight: bold;
+}
+
+.add_to_cart_button {
+    /* display: inline-block; */
+    display: inline;
+    padding: 10px 30px;
+    background: linear-gradient(to top, #79b260, #92d774);
+    color: white;
+    font-weight: bold;
+}
+
+/* after_main_block */
+
+.after_main_block {
+    display: flex;
+    flex-direction: row;
+    margin-top: 17px;
+    justify-content: space-between;
+}
+
+.left_block_info {
+    max-width: 708px;
+    width: 100%;
+    padding: 15px 20px;
+    border: 1px solid #a6a6a6;
+    border-radius: 10px;
+}
+
+
+
+.product_review_title {
+    font-size: 24px;
+    color: #7e7e7e;
+    margin-bottom: 18px;
+}
+
+.product_review_by_user {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+}
+
+.user_info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-right: 13px;
+}
+
+.user_image {
+    max-width: 65px;
+    max-height: 65px;
+    width: auto;
+    margin-bottom: 10px;
+}
+
+.user_name {
+    color: #7e7e7e;
+}
+
+.user_review {
+    font-size: 15px;
+    color: #7e7e7e;
+}
+
+
+.product_review_by_user_container {
+    display: flex;
+    flex-direction: column;
+}
+
+.product_review_by_user_container::after {
+    content: '';
+    display: block;
+    width: 100%;
+    height: 1px;
+    background: #7e7e7e;
+    margin: 15px 0;
+}
+
+.product_review_by_user_container:last-child::after {
+    display: none;
+}
+
+/* section review_form */
+
+.write_comment {
+    margin: 18px 0;
+    font-size: 20px;
+    color: #7e7e7e;
+}
+
+
+/* right block info */
+
+.right_block_info {
+    max-width: 236px;
+    width: 100%;
+    border: 1px solid #a6a6a6;
+    border-radius: 10px;
+    padding: 15px 13px;
+}
+
+
+.you_may_also_like {
+    margin-bottom: 18px;
+    font-size: 24px;
+    color: #7e7e7e;
+}
+
+
+.book_card {
+    display: flex;
+    flex-direction: row; 
+    justify-content: space-around;
+}
+
+.book_card_image {
+    max-width: 50px;
+    max-height: 78px;
+    width: auto;
+}
+
+.book_card_info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.book_card_title {
+    font-size: 15px;
+    color: #7e7e7e;
+}
+
+.book_card_price {
+    font-size: 22px;
+    color: #f05356;
+}
+
+.read_more_button {
+    color: white;
+    padding: 4px 8px;
+    background: #595959;
+    display: inline-block;
+    border-radius: 5px;
+}
+
+.book_card_container {
+    margin-top: 20px;
+}
+
+.book_card_container::after {
+    content: '';
+    width: 100%;
+    display: block;
+    background: grey;
+    height: 1px;
+    margin-top: 10px;
+}
+
+.book_card_container:last-child::after {
+    display: none;
+}
+
+
+
+
+
+
+
+
+
