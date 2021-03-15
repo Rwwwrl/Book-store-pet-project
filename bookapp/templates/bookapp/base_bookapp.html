@@ -2,41 +2,30 @@
 
 
 
-{% block promotions_titles %}
-<nav class="promotions">
-    <div class="promotion__category">
-        <div class="promotion__item active">Best sellers</div>
-        <div class="promotion__item">New Arrivals</div>
-        <div class="promotion__item">Used books</div>
-        <div class="promotion__item">Special Offers</div>
-    </div>
-</nav>
-{% endblock promotions_titles %}
-
-
 {% block category %}
-    {% for main_category in main_categorys %}
-    <div class="category__item--products main_category">
-        <p class="main_category_title">{{ main_category.title }}</p>
+{% for main_category in main_categorys %}
+<div class="category__item--products category__header">Categories</div>
+<div class="category__item--products main_category">
+    <p class="main_category_title">{{ main_category.title }}</p>
 
 
-        {% for under_category in main_category.under_category.all %}
-        <a href="{{ under_category.get_absolute_url }}" class="item__link">
-            <p
-                class="category__item--products under_category {% if request.path == under_category.get_absolute_url %} active {% endif %}">
-                {{ under_category.title }}</p>
-        </a>
+    {% for under_category in main_category.under_category.all %}
+    <a href="{{ under_category.get_absolute_url }}" class="item__link">
+        <p
+            class="category__item--products under_category {% if request.path == under_category.get_absolute_url %} active {% endif %}">
+            {{ under_category.title }}</p>
+    </a>
 
-        {% endfor %}
-    </div>
     {% endfor %}
+</div>
+{% endfor %}
 {% endblock category %}
 
 
 {% block products %}
 
 {% for book in page_obj %}
-    {% include 'bookapp/include/book_card.html' %}
+{% include 'bookapp/include/book_card.html' %}
 {% endfor %}
 
 

@@ -1,0 +1,9 @@
+{% extends 'bookapp/account_page/account_page_base.html' %}
+{% load static %}
+
+
+{% block products %}
+    {% for book in books  %}
+        {% include 'bookapp/include/book_card.html' %}
+    {% endfor %}
+{% endblock products %}

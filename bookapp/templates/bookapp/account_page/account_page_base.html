@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/account_page.css' %}">
+{% endblock css %}
+
+
+{% block category %}
+
+<div class="wish_card--container">
+    <a href="#" class="wish_card_link {% if request.path == '/account_page/wish_list/' %}active{% endif %}">WishList</a>
+    <a href="#" class="wish_card_link {% if request.path == '/account_page/cart_page/' %}active{% endif %}">Cart</a>
+</div>
+
+{% endblock category %}
+
+
+
+{% block products %}
+{% endblock products %}

@@ -3,12 +3,24 @@
 {% block nav_categorys %}
 <div class="container container--nav">
     <nav class="nav__category">
-        {% for main_category in main_categorys %}
-        <div class="category__item">{{ main_category.title }}</div>
+        {% for special_category in special_categorys %}
+        <a class="category__item" href="{{ special_category.get_absolute_url }}">{{ special_category.title }}</a>
         {% endfor %}
     </nav>
 </div>
 {% endblock nav_categorys %}
+
+
+{% block promotions_titles %}
+{% if is_it_special %}
+    <nav class="promotions">
+        <div class="promotion__category">
+        <div class="promotion__item active">{{ special_category }}</div>
+        </div>
+    </nav>
+{% endif %}
+{% endblock promotions_titles %}
+
 
 {% block sliders %}
 <section class="section--slider">
@@ -18,5 +30,3 @@
     </div>
 </section>
 {% endblock sliders %}
-
-

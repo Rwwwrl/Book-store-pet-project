@@ -1,0 +1,30 @@
+{% extends 'bookapp/account_page/account_page_base.html' %}
+
+
+{% block products %}
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">Image</th>
+            <th scope="col">Title</th>
+            <th scope="col">Price</th>
+            <th scope="col">Quantity</th>
+            <th scope="col">Final price</th>
+        </tr>
+    </thead>
+    <tbody>
+
+        {% for cart_product in cart_products %}
+        <tr>
+            <td class="table_td">
+                <img class="table_img" src="{{ cart_product.book.image.url }}" alt="">
+            </td>
+            <td class="table_td">{{ cart_product.book.title }}</td>
+            <td class="table_td">{{ cart_product.book.price }}</td>
+            <td class="table_td">{{ cart_product.qty }}</td>
+            <td class="table_td">{{ cart_product.final_price }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock products %}
