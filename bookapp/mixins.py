@@ -16,7 +16,6 @@ class UserWishListMixin(ContextMixin, View):
         self.cart, cart_created = Cart.objects.get_or_create(
             user=self.user
         )
-        print(self.cart.product_items.all())
 
         return super().dispatch(request, *args, **kwargs)
 

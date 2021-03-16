@@ -117,3 +117,29 @@ class CartView(UserWishListMixin, ListView):
 
     def get_queryset(self, **kwargs):
         return self.cart.product_items.all()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['cart_final_price'] = self.cart.get_final_param('final_price')
+        context['cart_final_qty'] = self.cart.get_final_param('qty')
+        return context
+
+
+class RecalcCartView(UserWishListMixin):
+
+    def post(self, request, *args, **kwargs):
+        for id in request.POST:
+            if not id.startswith('csrf'):
+                product_item = self.cart.product_items.get(id=id)
+                product_item.qty = int(request.POST[id])
+                product_item.save()
+        return redirect('cart_page')
+
+
+class MyAccountView(UserWishListMixin, DetailView):
+
+    template_name = 'my_account.html'
+    context_object_name = 'user'
+
+    def get_object(self, **kwargs):
+        return self.user

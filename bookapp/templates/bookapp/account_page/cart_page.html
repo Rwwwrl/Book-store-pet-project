@@ -2,29 +2,44 @@
 
 
 {% block products %}
-<table class="table">
-    <thead>
-        <tr>
-            <th scope="col">Image</th>
-            <th scope="col">Title</th>
-            <th scope="col">Price</th>
-            <th scope="col">Quantity</th>
-            <th scope="col">Final price</th>
-        </tr>
-    </thead>
-    <tbody>
+<div class="block_products">
+    <form action="{% url 'recalc_cart' %}" method="POST">
+        {% csrf_token %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Image</th>
+                    <th scope="col">Title</th>
+                    <th scope="col">Price</th>
+                    <th scope="col">Quantity</th>
+                    <th scope="col">Final price</th>
+                </tr>
+            </thead>
+            <tbody>
 
-        {% for cart_product in cart_products %}
-        <tr>
-            <td class="table_td">
-                <img class="table_img" src="{{ cart_product.book.image.url }}" alt="">
-            </td>
-            <td class="table_td">{{ cart_product.book.title }}</td>
-            <td class="table_td">{{ cart_product.book.price }}</td>
-            <td class="table_td">{{ cart_product.qty }}</td>
-            <td class="table_td">{{ cart_product.final_price }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+                {% for cart_product in cart_products %}
+                <tr>
+                    <td class="table_td">
+                        <img class="table_img" src="{{ cart_product.book.image.url }}" alt="">
+                    </td>
+                    <td>{{ cart_product.book.title }}</td>
+                    <td>{{ cart_product.book.price }}</td>
+                    <td><input class="qty_input" type="number" value="{{ cart_product.qty }}" min="1" max="20"
+                            name="{{ cart_product.id }}"></td>
+                    <td>{{ cart_product.final_price }}$</td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td colspan="3"></td>
+                    <td class="final_params">Final Qty: <span class="final_result">{{ cart_final_qty }}</span></td>
+                    <td class="final_params">Final Price: <span class="final_result">{{ cart_final_price }}$</span></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="buttons_wrapper">
+            <button type="submit" class="change_button">Save changes</button>
+            <a href="#" class="checkout">Checkout</a>
+        </div>
+    </form>
+</div>
 {% endblock products %}

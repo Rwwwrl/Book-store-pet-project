@@ -27,11 +27,88 @@ table {
 td, th {
     text-align: center;
     width: 20%;
+    height: 10px;
     border-bottom: 1px solid #d6d6d6;
 }
 
 .table_img {
+    margin: 0 auto;
     display: block;
     max-width: 100%;
-    height: auto;
+    max-height: 100px;
+    width: auto;
 }
+
+.qty_input {
+    max-width: 20%;
+    margin: 0 auto;
+}
+
+.buttons_wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+.final_params {
+    font-size: 20px;
+}
+
+.final_result {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.block_products {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.checkout {
+    color: white;
+    text-decoration: none;
+    padding: 3px;
+    background: #3a3a3a;
+    border-radius: 5px;
+    font-size: 20px;
+}
+
+.change_button {
+    background: #bbd5af;
+    color: white;
+    border: none;
+    font-size: 20px;
+    margin-right: 10px;
+    border-radius: 5px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

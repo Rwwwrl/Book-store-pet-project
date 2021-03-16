@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Sum
 from django.utils.text import slugify
 from django.urls import reverse
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -90,6 +91,9 @@ class Cart(models.Model):
     def __str__(self):
         return f'{self.user.username}`s cart'
 
+    def get_final_param(self, param):
+        final_param = self.product_items.aggregate(Sum(param))
+        return final_param[param+'__sum']
 
 class ProductItem(models.Model):
     book = models.OneToOneField(Book, related_name='product_item', on_delete=models.CASCADE)
