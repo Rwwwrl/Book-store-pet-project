@@ -4,6 +4,7 @@ from django.views.generic import ListView, DetailView
 from django.shortcuts import redirect
 
 from .models import MainCategory, UnderCategory, Book, SpecialCategory, WishList, Cart, ProductItem
+from .forms import UserAccountForm
 from .mixins import UserWishListMixin
 
 
@@ -83,6 +84,15 @@ class AddToWishList(UserWishListMixin):
             self.wishlist.books.add(book_model)
         return redirect('main_page')
 
+class DeleteFromWishList(UserWishListMixin):
+
+    def get(self, request, *args, **kwargs):
+        book_slug = kwargs.get('book_slug', '')
+        if self.wishlist.books.filter(slug=book_slug).exists():
+            book_model = Book.objects.filter(slug=book_slug)[0]
+            self.wishlist.books.remove(book_model)
+        return redirect('wish_page')
+
 
 class AddToCart(UserWishListMixin):
 
@@ -98,6 +108,15 @@ class AddToCart(UserWishListMixin):
             product_item.qty += 1
             product_item.save()
         return redirect('main_page')
+
+class RemoveFromCart(UserWishListMixin):
+
+    def get(self, request, *args, **kwargs):
+        pi_id = kwargs.get('id')
+        if self.cart.product_items.filter(id=pi_id).exists():
+            pi = ProductItem.objects.get(id=pi_id)
+            pi.delete()
+        return redirect('cart_page') 
 
 
 class WishListView(UserWishListMixin, ListView):
@@ -136,10 +155,24 @@ class RecalcCartView(UserWishListMixin):
         return redirect('cart_page')
 
 
-class MyAccountView(UserWishListMixin, DetailView):
+class MyAccountView(UserWishListMixin):
 
-    template_name = 'my_account.html'
-    context_object_name = 'user'
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data()
+        if hasattr(self.account, 'image'):
+            context['account_image'] = self.account.image
+        return render(request, 'bookapp/account_page/my_account_page.html', context)
 
-    def get_object(self, **kwargs):
-        return self.user
+    def post(self, request, *args, **kwargs):
+        form = UserAccountForm(request.POST, request.FILES, instance=self.account)
+        if form.is_valid():
+            form.save()
+            return redirect('my_account_page')
+            
+
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = UserAccountForm(instance=self.account)
+        return context
+

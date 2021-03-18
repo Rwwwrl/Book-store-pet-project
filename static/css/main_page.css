@@ -20,6 +20,7 @@ input:focus {
     outline: none;
 }
 
+html,
 body {
 	height: 100%;
 }
@@ -58,6 +59,7 @@ body {
 .header__item {
     margin-right: 27px;
     font-size: 17px;
+    color: white;
 }
 
 .search__section {

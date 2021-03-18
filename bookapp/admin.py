@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # Register your models here.
-from .models import MainCategory, UnderCategory, SpecialCategory, Book, WishList
+from .models import MainCategory, UnderCategory, SpecialCategory, Book, WishList, UserAccount
 
 class ModelWithoutSlugAdmin(admin.ModelAdmin):
     exclude = ['slug', ]
@@ -26,4 +26,5 @@ admin.site.register(MainCategory),
 admin.site.register(UnderCategory),
 admin.site.register(Book),
 admin.site.register(SpecialCategory),
-admin.site.register(WishList)
+admin.site.register(WishList),
+admin.site.register(UserAccount),

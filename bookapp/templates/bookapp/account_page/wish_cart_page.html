@@ -3,7 +3,23 @@
 
 
 {% block products %}
-    {% for book in books  %}
-        {% include 'bookapp/include/book_card.html' %}
-    {% endfor %}
+
+{% if books %}
+{% for book in books %}
+<div class="product__item">
+    <a href="{{ book.get_absolute_url }}" class="image"><img src="{{ book.image.url }}" class='book_image_django'
+            alt=""></a>
+    <div class="product__title">{{ book.title }}</div>
+    <div class="product__price">{{ book.price }}$</div>
+    <a href="{% url 'delete_from_wish' book.slug %}" class="delete_button">&#10006;</a>
+</div>
+{% endfor %}
+{% else %}
+<div class="empty_cart">
+    <h1 class="cart_is_empty">Wishlist is empty...</h1>
+    <a class="link_to_mainpage" href="{% url 'main_page' %}">main page</a>
+</div>
+{% endif %}
+
+
 {% endblock products %}

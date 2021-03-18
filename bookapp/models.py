@@ -110,5 +110,17 @@ class ProductItem(models.Model):
 
 
 
+class UserAccount(models.Model):
+    user = models.OneToOneField(User, related_name='account', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to="user/", null=True, blank=True, default='../static/images/default_avatar.jpg')
+    first_name = models.CharField(max_length=255, null=True, blank=True)
+    last_name = models.CharField(max_length=255, null=True, blank=True)
+    email = models.EmailField(null=True, blank=True)
 
-        
+    def __str__(self):
+        return f'{self.first_name} {self.last_name}'
+
+
+
+
+

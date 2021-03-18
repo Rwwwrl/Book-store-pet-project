@@ -1,7 +1,7 @@
 from django.views import View
 from django.views.generic.base import ContextMixin
 
-from .models import MainCategory, UnderCategory, Book, SpecialCategory, WishList, Cart
+from .models import MainCategory, UnderCategory, Book, SpecialCategory, WishList, Cart, UserAccount
 
 class UserWishListMixin(ContextMixin, View):
 
@@ -16,7 +16,10 @@ class UserWishListMixin(ContextMixin, View):
         self.cart, cart_created = Cart.objects.get_or_create(
             user=self.user
         )
-
+        # get his account
+        self.account, account_created = UserAccount.objects.get_or_create(
+            user=self.user
+        )
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
