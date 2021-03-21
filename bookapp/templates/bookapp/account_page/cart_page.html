@@ -1,10 +1,11 @@
 {% extends 'bookapp/account_page/account_page_base.html' %}
+{% load crispy_forms_tags %}
 
 
 {% block products %}
 <div class="block_products">
     {% if cart_products %}
-    <form action="{% url 'recalc_cart' %}" method="POST">
+    <form action="{% url 'recalc_cart' %}" method="POST" class="cart_form">
         {% csrf_token %}
         <table class="table">
             <thead>
@@ -42,14 +43,29 @@
         </table>
         <div class="buttons_wrapper">
             <button type="submit" class="change_button">Save changes</button>
-            <a href="#" class="checkout">Checkout</a>
         </div>
-        {% else %}
-        <div class="empty_cart">
-            <h1 class="cart_is_empty">Cart is empty...</h1>
-            <a class="link_to_mainpage" href="{% url 'main_page' %}">main page</a>
-        </div>
-        {% endif %}
     </form>
+
+    <form action="{% url 'checkout' %}" method="POST">
+        {% csrf_token %}
+        
+        {% if checkout_form.errors %}
+            {{ checkout_form.errors }}
+        {% endif %}
+            
+        {{ checkout_form|crispy }}    
+        <div class="buttons_wrapper">
+            <button type="submit" class="checkout">Checkout</button>
+        </div>
+    </form>
+
+    {% else %}
+    <div class="empty_cart">
+        <h1 class="cart_is_empty">Cart is empty...</h1>
+        <a class="link_to_mainpage" href="{% url 'main_page' %}">main page</a>
+    </div>
+
+    {% endif %}
+
 </div>
 {% endblock products %}

@@ -11,6 +11,7 @@
 <div class="wish_card--container">
     <a href="{% url 'my_account_page' %}" class="wish_card_link {% if request.path == '/account_page/my_account/' %}active{% endif %}">My Account</a>
     <a href="{% url 'wish_page' %}" class="wish_card_link {% if request.path == '/account_page/wish_list/' %}active{% endif %}">WishList</a>
+    <a href="{% url 'checkouts_page' %}" class="wish_card_link {% if request.path == 'account_page/checkout_history/' %}active{% endif %}">Checkout history</a>
     <a href="{% url 'cart_page' %}" class="wish_card_link {% if request.path == '/account_page/cart_page/' %}active{% endif %}">Cart</a>
 </div>
 
@@ -18,5 +19,5 @@
 
 
 
-{% block products %}
-{% endblock products %}
+
+

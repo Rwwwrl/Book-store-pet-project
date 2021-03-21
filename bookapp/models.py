@@ -86,17 +86,20 @@ class Book(models.Model):
 
 
 class Cart(models.Model):
-    user = models.OneToOneField(User, related_name='cart', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name='cart', on_delete=models.CASCADE)
+    is_used = models.BooleanField(default=False)
 
     def __str__(self):
-        return f'{self.user.username}`s cart'
+        return f'{self.user.username}`s cart, is_used = {self.is_used}'
 
     def get_final_param(self, param):
+        if not self.product_items.exists():
+            return 0
         final_param = self.product_items.aggregate(Sum(param))
         return final_param[param+'__sum']
 
 class ProductItem(models.Model):
-    book = models.OneToOneField(Book, related_name='product_item', on_delete=models.CASCADE)
+    book = models.ForeignKey(Book, related_name='product_item', on_delete=models.CASCADE)
     qty = models.PositiveIntegerField()
     final_price = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     cart = models.ForeignKey(Cart, related_name='product_items', on_delete=models.CASCADE, null=True)
@@ -121,6 +124,21 @@ class UserAccount(models.Model):
         return f'{self.first_name} {self.last_name}'
 
 
+class Checkout(models.Model):
+    cart = models.OneToOneField(Cart, related_name='checkout', on_delete=models.CASCADE)
+    user_account = models.ForeignKey(UserAccount, related_name='checkouts', on_delete=models.CASCADE)
+    first_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255)
+    email = models.EmailField(null=True)
+    address = models.CharField(max_length=255)
+    commentary = models.TextField(max_length=255, blank=True, null=True)
+    delivery_date = models.DateField(null=True)
+    date_of_created = models.DateField(auto_now_add=True, blank=True, null=True)
+    date_of_changes = models.DateField(auto_now=True, blank=True, null=True)
 
 
+    def __str__(self):
+        return f'{self.user_account.first_name}`s checkout'
 
+    def get_fullprice(self):
+        return self.cart.get_final_param('final_price')

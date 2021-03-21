@@ -1,0 +1,79 @@
+{% extends 'bookapp/account_page/account_page_base.html' %}
+{% load static %}
+
+
+{% block products %}
+
+{% if checkouts %}
+
+
+{% for checkout in checkouts  %}
+<div class="checkout_item_wrapper hidden"> 
+    <div class="checkout_item">
+        <div class="checkout_label">Id: <span class="checkout_title">{{ checkout.id }}</span> </div>
+        <div class="checkout_label">Delivery date: <span class="checkout_title">{{ checkout.delivery_date }}</span></div>
+    </div>
+    <div class="checkout_item_fullinfo">
+        <table>
+            
+            {% for product_item in checkout.cart.product_items.all %}
+                <tr>
+                    <td class="checkout_title_td">title: {{ product_item.book.title }}</td>
+                    <td class="checkout_title_td">qty: {{ product_item.qty }}</td>
+                    <td class="checkout_title_td">final price: {{ product_item.final_price }}$</td>
+                </tr>
+            {% endfor %}     
+            <tr>
+                <td class="checkout_title_td">First name:</td>
+                <td colspan="2" class="checkout_value_td">{{ checkout.first_name }}</td>
+            </tr>
+            <tr>
+                <td class="checkout_title_td">Last name:</td>
+                <td colspan="2" class="checkout_value_td">{{ checkout.last_name }}</td>
+            </tr>
+            <tr>
+                <td class="checkout_title_td">Email:</td>
+                <td colspan="2" class="checkout_value_td">{{ checkout.email }}</td>
+            </tr>
+            <tr>
+                <td class="checkout_title_td">Address:</td>
+                <td colspan="2" class="checkout_value_td">{{ checkout.address }}</td>
+            </tr>
+            <tr>
+                <td class="checkout_title_td">Commentary:</td>
+                <td colspan="2" class="checkout_value_td">{{ checkout.commentary }}</td>
+            </tr>
+            <tr>
+                <td class="checkout_title_td">Delivery date:</td>
+                <td colspan="2" class="checkout_value_td">{{ checkout.delivery_date }}</td>
+            </tr>
+            <tr>
+                <td class="checkout_title_td">Created date:</td>
+                <td colspan="2" class="checkout_value_td">{{ checkout.date_of_created }}</td>
+            </tr>
+            <tr>
+                <td class="checkout_title_td">Price:</td>
+                <td colspan="2" class="checkout_value_td price">{{ checkout.get_fullprice }}$</td>
+            </tr>
+        </table>
+    </div>
+</div>
+{% endfor %}
+
+{% else %}
+<div class="empty_cart">
+    <h1 class="cart_is_empty">Checkouts is empty...</h1>
+    <a class="link_to_mainpage" href="{% url 'main_page' %}">main page</a>
+</div>
+{% endif %}
+
+
+
+
+{% endblock products %}
+
+
+{% block js %}
+    <script src="{% static 'js/account_page/checkouts_page.js' %}"></script>
+{% endblock js %}
+    

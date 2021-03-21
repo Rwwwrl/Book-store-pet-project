@@ -4,7 +4,7 @@ from django.views.generic import ListView, DetailView
 from django.shortcuts import redirect
 
 from .models import MainCategory, UnderCategory, Book, SpecialCategory, WishList, Cart, ProductItem
-from .forms import UserAccountForm
+from .forms import UserAccountForm, CheckoutForm
 from .mixins import UserWishListMixin
 
 
@@ -82,7 +82,7 @@ class AddToWishList(UserWishListMixin):
         if not self.wishlist.books.filter(slug=book_slug).exists():
             book_model = Book.objects.filter(slug=book_slug)[0]
             self.wishlist.books.add(book_model)
-        return redirect('main_page')
+        return redirect('book_detail', book_slug=book_slug)
 
 class DeleteFromWishList(UserWishListMixin):
 
@@ -134,13 +134,16 @@ class CartView(UserWishListMixin, ListView):
     context_object_name = 'cart_products'
     template_name = 'bookapp/account_page/cart_page.html'
 
+    def post(self, request, *args, **kwargs):
+        print('this is post')
+
     def get_queryset(self, **kwargs):
         return self.cart.product_items.all()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['cart_final_price'] = self.cart.get_final_param('final_price')
         context['cart_final_qty'] = self.cart.get_final_param('qty')
+        context['checkout_form'] = CheckoutForm(instance=self.account)
         return context
 
 
@@ -169,10 +172,36 @@ class MyAccountView(UserWishListMixin):
             form.save()
             return redirect('my_account_page')
             
-
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['form'] = UserAccountForm(instance=self.account)
         return context
+
+
+class CheckoutView(UserWishListMixin):
+
+    def post(self, request, *args, **kwargs):
+        checkout_form = CheckoutForm(request.POST)
+        
+        if checkout_form.is_valid():
+            checkout_model = checkout_form.save(commit=False)
+            checkout_model.cart = self.cart
+            checkout_model.user_account = self.account
+            checkout_model.save()
+            self.cart.is_used = True
+            self.cart.save()
+        return redirect('main_page')
+
+
+class CheckoutsView(UserWishListMixin, ListView):
+
+    template_name = 'bookapp/account_page/checkouts.html'
+    context_object_name = 'checkouts'
+
+    def get_queryset(self, *args, **kwargs):
+        account = self.user.account
+        return account.checkouts.all()
+
+
+
 

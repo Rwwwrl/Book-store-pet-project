@@ -56,8 +56,8 @@
                             <p class="your_cart">Your cart <span class="qty_items">({{ cart|length }} items)</span></p>
                         </div>
                         <div class="row">
-                            <div class="summary_price">$125.0</div>
-                            <a href="#" class="checkout">Checkout</a>
+                            <div class="summary_price">{{ cart_final_price }}$</div>
+                            <a href="{% url 'cart_page' %}" class="checkout">Checkout</a>
                         </div>
                     </div>
                     <div class="vert_line"></div>
@@ -148,6 +148,10 @@
     </div>
 
 
+{% block js %}
+    
+{% endblock js %}
+    
 
 </body>
 
