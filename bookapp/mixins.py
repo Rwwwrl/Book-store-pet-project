@@ -20,9 +20,7 @@ class UserWishListMixin(ContextMixin, View):
         self.account, account_created = UserAccount.objects.get_or_create(
             user=self.user
         )
-        print()
-        print(self.cart)
-        print()
+        
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):

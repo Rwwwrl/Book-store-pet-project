@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import SpecialCategory, MainCategory, UnderCategory, Book, Cart, UserAccount, Checkout
+from .models import SpecialCategory, MainCategory, UnderCategory, Book, Cart, UserAccount, Checkout, Commentary
 
 
 class UserAccountForm(forms.ModelForm):
@@ -23,7 +23,16 @@ class CheckoutForm(forms.ModelForm):
         self.fields['commentary'].widget.attrs.update({'rows': 3})
 
 
+class CommentaryForm(forms.ModelForm):
 
+    class Meta:
+        model = Commentary
+        fields = ['text',]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['text'].label = ''
+        self.fields['text'].widget.attrs.update({'rows': 1, 'placeholder': 'write a comment'})
 
 
 

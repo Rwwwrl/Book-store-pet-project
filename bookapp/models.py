@@ -81,6 +81,14 @@ class Book(models.Model):
     def get_absolute_url(self):
         return reverse('book_detail', kwargs={'book_slug': self.slug})
 
+    def get_book_count_in_cart(self, cart):
+        queryset = cart.product_items.filter(book__slug=self.slug)
+        if queryset.exists():
+            return queryset[0].qty
+        return 0
+
+
+
     def __str__(self):
         return self.title
 
@@ -142,3 +150,13 @@ class Checkout(models.Model):
 
     def get_fullprice(self):
         return self.cart.get_final_param('final_price')
+
+
+class Commentary(models.Model):
+    book = models.ForeignKey(Book, related_name='comments', on_delete=models.CASCADE)
+    user_account = models.ForeignKey(UserAccount, related_name='comments', on_delete=models.CASCADE)
+    text = models.TextField(max_length=255, blank=False)
+    date_of_created = models.DateField(auto_now_add=True, blank=True, null=True)
+
+    def __str__(self):
+        return f'{self.user_account.first_name}`s comment on {self.book.title} book'

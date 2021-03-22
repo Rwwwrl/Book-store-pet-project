@@ -4,7 +4,7 @@ from django.views.generic import ListView, DetailView
 from django.shortcuts import redirect
 
 from .models import MainCategory, UnderCategory, Book, SpecialCategory, WishList, Cart, ProductItem
-from .forms import UserAccountForm, CheckoutForm
+from .forms import UserAccountForm, CheckoutForm, CommentaryForm
 from .mixins import UserWishListMixin
 
 
@@ -45,13 +45,28 @@ class BookDetail(UserWishListMixin, DetailView):
     template_name = 'bookapp/book_detail.html'
     slug_url_kwarg = 'book_slug'
 
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        comment_form = CommentaryForm(request.POST)
+        if comment_form.is_valid():
+            comment_model = comment_form.save(commit=False)
+            comment_model.user_account = self.account
+            comment_model.book = self.object
+            comment_model.save()
+        return redirect('book_detail', book_slug=self.object.slug)
+
+
     def is_book_on_wish_list(self):
         return self.wishlist.books.filter(slug=self.object.slug).exists()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['is_book_on_wish_list'] = self.is_book_on_wish_list()
+        context['count_in_cart'] = self.object.get_book_count_in_cart(self.cart)
+        context['comments'] = self.object.comments.all().order_by('id')[:5]
+        context['comment_form'] = CommentaryForm()
         return context
+
 
 
 class UnderCategoryBooks(UserWishListMixin, ListView):
@@ -104,10 +119,10 @@ class AddToCart(UserWishListMixin):
                 book=book, qty=1, cart=self.cart
             )
         else:
-            product_item = ProductItem.objects.get(book=book)
+            product_item = self.cart.product_items.get(book=book)
             product_item.qty += 1
             product_item.save()
-        return redirect('main_page')
+        return redirect('book_detail', book_slug=book_slug)
 
 class RemoveFromCart(UserWishListMixin):
 
@@ -200,7 +215,7 @@ class CheckoutsView(UserWishListMixin, ListView):
 
     def get_queryset(self, *args, **kwargs):
         account = self.user.account
-        return account.checkouts.all()
+        return account.checkouts.all().order_by('-id')
 
 
 

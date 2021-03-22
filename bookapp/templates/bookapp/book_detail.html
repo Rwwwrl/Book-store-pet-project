@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load crispy_forms_tags %}
 
 {% block css %}
 <link rel="stylesheet" href="{% static 'css/book_detail.css' %}">
@@ -41,10 +42,18 @@
 
             <div class="buy_block">
                 <div class="buy_info">
-                    <div class="price_info">
-                        <h3 class="our_price">Our price :</h3>
-                        <div class="buy_price">${{ book.price }}</div>
-                    </div>
+                        <div class="price_info_wrapper">
+                            <div class="our_price_info">
+                                <h3 class="our_price">Our price :</h3>
+                                <div class="buy_price">${{ book.price }}</div>
+                            </div>
+                            <div class="in_wish_cart_block">
+                                {% if is_book_on_wish_list %}
+                                <div class="info__in_cart">in wishlist</div>
+                                {% endif %}
+                                <div class="info__in_cart">in cart: {{ count_in_cart }}</div>
+                            </div>
+                        </div>
                     <a class="add_to_cart_button" href="{% url 'add_to_cart' book.slug %}">Add to cart</a>
                 </div>
             </div>
@@ -57,46 +66,33 @@
                 <h3 class="product_review_title">
                     Product review
                 </h3>
+                {% for comment in comments  %}
                 <div class="product_review_by_user_container">
                     <div class="product_review_by_user">
                         <div class="user_info">
-                            <img class="user_image" src="{% static 'images/default_avatar.jpg' %}" alt="">
-                            <div class="user_name">Name1</div>
+                            <img class="user_image" src="{{ comment.user_account.image.url }}" alt="">
+                            <div class="user_name">{{ comment.user_account.first_name }}</div>
                         </div>
-                        <div class="user_review">Lorem ipsum dolor sit amet consectetur adipisicing elit. Repellat
-                            reprehenderit odio obcaecati provident atque. Dolorum, eius! Nobis rerum tempore laboriosam
-                            expedita ab, accusantium repellat magnam quod, sint accusamus quam est?</div>
+                        <div class="user_review">
+                            <div class="user_review_text">{{ comment.text }}</div>
+                            <div class="user_review_date">{{ comment.date_of_created }}</div>
+                        </div>
                     </div>
                 </div>
-
-                <div class="product_review_by_user_container">
-                    <div class="product_review_by_user">
-                        <div class="user_info">
-                            <img class="user_image" src="{% static 'images/default_avatar.jpg' %}" alt="">
-                            <div class="user_name">Name1</div>
-                        </div>
-                        <div class="user_review">Lorem ipsum dolor sit amet consectetur adipisicing elit. Repellat
-                            reprehenderit odio obcaecati provident atque. Dolorum, eius! Nobis rerum tempore laboriosam
-                            expedita ab, accusantium repellat magnam quod, sint accusamus quam est?</div>
-                    </div>
-                </div>
-
-                <div class="product_review_by_user_container">
-                    <div class="product_review_by_user">
-                        <div class="user_info">
-                            <img class="user_image" src="{% static 'images/default_avatar.jpg' %}" alt="">
-                            <div class="user_name">Name1</div>
-                        </div>
-                        <div class="user_review">Lorem ipsum dolor sit amet consectetur adipisicing elit. Repellat
-                            reprehenderit odio obcaecati provident atque. Dolorum, eius! Nobis rerum tempore laboriosam
-                            expedita ab, accusantium repellat magnam quod, sint accusamus quam est?</div>
-                    </div>
-                </div>
+                {% endfor %}
+                
             </section>
+            {% if book.comments.all|length > 5 %}
+            <div class="see_more_wrapper">
+                <a class="see_more_button" href="#">There are {{ book.comments.all|length|add:"-5"}} more commets..</a>
+            </div>
+            {% endif %}
             <section class="section_review_form">
-                <h3 class="write_comment">Write a comment</h3>
-                <form action="" class='review_form'>
+                <h3 class="write_comment">Write a comment:</h3>
+                <form action="{% url 'book_detail' book.slug %}" class='review_form' method="POST">
                     {% csrf_token %}
+                    {{ comment_form|crispy }}
+                    <button type="submit" class="submit_button">&#10148;</button>
                 </form>
             </section>
         </div>
