@@ -1,0 +1,18 @@
+.product_review_by_user_container {
+    max-width: 50%;
+    margin: 0 auto;
+}
+
+.product_review_by_user_container:last-child::after {
+    display: none;
+}
+
+.book_commentary {
+    margin: 10px 0 20px 0;
+    text-align: center;
+    color: #696969;
+}
+
+.book_title {
+    color: #bbd5af;
+}

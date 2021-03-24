@@ -52,10 +52,17 @@ img {
 
 .book_image {
     max-width: 248px;
-    max-height: 392px;
+    min-height: 392px;
+    max-height: 500px;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    align-items: center;
+    justify-content: space-around;
+}
+
+.book_image__image {
+    max-width: 100%;
+    height: auto;
 }
 
 .book_info {
@@ -190,10 +197,15 @@ img {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    max-width: 85%;
     width: 100%;
     min-height: 100%;
     font-size: 15px;
     color: #7e7e7e;
+}
+
+.user_review_text {
+    word-wrap: break-word;
 }
 
 .user_review_date {
@@ -338,6 +350,7 @@ img {
 
 .textarea.form-control {
     resize: none;
+    overflow: hidden;
 }
 
 .form-control {

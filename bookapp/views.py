@@ -2,10 +2,13 @@ from django.shortcuts import render
 from django.views import View
 from django.views.generic import ListView, DetailView
 from django.shortcuts import redirect
+from django.http import JsonResponse
 
 from .models import MainCategory, UnderCategory, Book, SpecialCategory, WishList, Cart, ProductItem
 from .forms import UserAccountForm, CheckoutForm, CommentaryForm
 from .mixins import UserWishListMixin
+
+import json
 
 
 class MainPage(UserWishListMixin, ListView):
@@ -46,27 +49,36 @@ class BookDetail(UserWishListMixin, DetailView):
     slug_url_kwarg = 'book_slug'
 
     def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        comment_form = CommentaryForm(request.POST)
-        if comment_form.is_valid():
-            comment_model = comment_form.save(commit=False)
-            comment_model.user_account = self.account
-            comment_model.book = self.object
-            comment_model.save()
-        return redirect('book_detail', book_slug=self.object.slug)
-
+        if request.is_ajax():
+            comment_form = CommentaryForm(request.POST)
+            if comment_form.is_valid():
+                comment_model = comment_form.save(commit=False)
+                comment_model.user_account = self.account
+                comment_model.book = self.object
+                comment_model.save()
+                return JsonResponse({'good': True, 'comment_info': {
+                    'profile_image': self.account.image.url, 
+                    'profile_first_name': self.account.first_name,
+                    'date_of_created': comment_model.date_of_created,
+                    'text': comment_model.text
+                    }}, status=200)
+            return JsonResponse({'good': False}, status=200)
 
     def is_book_on_wish_list(self):
         return self.wishlist.books.filter(slug=self.object.slug).exists()
 
+    def dispatch(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super().dispatch(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['is_book_on_wish_list'] = self.is_book_on_wish_list()
-        context['count_in_cart'] = self.object.get_book_count_in_cart(self.cart)
+        context['count_in_cart'] = self.object.get_book_count_in_cart(
+            self.cart)
         context['comments'] = self.object.comments.all().order_by('id')[:5]
         context['comment_form'] = CommentaryForm()
         return context
-
 
 
 class UnderCategoryBooks(UserWishListMixin, ListView):
@@ -99,6 +111,7 @@ class AddToWishList(UserWishListMixin):
             self.wishlist.books.add(book_model)
         return redirect('book_detail', book_slug=book_slug)
 
+
 class DeleteFromWishList(UserWishListMixin):
 
     def get(self, request, *args, **kwargs):
@@ -124,6 +137,7 @@ class AddToCart(UserWishListMixin):
             product_item.save()
         return redirect('book_detail', book_slug=book_slug)
 
+
 class RemoveFromCart(UserWishListMixin):
 
     def get(self, request, *args, **kwargs):
@@ -131,7 +145,7 @@ class RemoveFromCart(UserWishListMixin):
         if self.cart.product_items.filter(id=pi_id).exists():
             pi = ProductItem.objects.get(id=pi_id)
             pi.delete()
-        return redirect('cart_page') 
+        return redirect('cart_page')
 
 
 class WishListView(UserWishListMixin, ListView):
@@ -182,11 +196,12 @@ class MyAccountView(UserWishListMixin):
         return render(request, 'bookapp/account_page/my_account_page.html', context)
 
     def post(self, request, *args, **kwargs):
-        form = UserAccountForm(request.POST, request.FILES, instance=self.account)
+        form = UserAccountForm(
+            request.POST, request.FILES, instance=self.account)
         if form.is_valid():
             form.save()
             return redirect('my_account_page')
-            
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['form'] = UserAccountForm(instance=self.account)
@@ -197,7 +212,7 @@ class CheckoutView(UserWishListMixin):
 
     def post(self, request, *args, **kwargs):
         checkout_form = CheckoutForm(request.POST)
-        
+
         if checkout_form.is_valid():
             checkout_model = checkout_form.save(commit=False)
             checkout_model.cart = self.cart
@@ -218,5 +233,22 @@ class CheckoutsView(UserWishListMixin, ListView):
         return account.checkouts.all().order_by('-id')
 
 
+class BookComments(UserWishListMixin, ListView):
 
+    template_name = 'bookapp/all_comments.html'
+    context_object_name = 'comments'
 
+    paginate_by = 5
+
+    def dispatch(self, *args, **kwargs):
+        self.book = Book.objects.get(slug=kwargs.get('book_slug'))
+        self.comments = self.book.comments.all()
+        return super().dispatch(*args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['book'] = self.book
+        return context
+
+    def get_queryset(self, **kwargs):
+        return self.comments
