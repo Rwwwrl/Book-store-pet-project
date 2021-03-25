@@ -59,8 +59,9 @@ class BookDetail(UserWishListMixin, DetailView):
                 return JsonResponse({'good': True, 'comment_info': {
                     'profile_image': self.account.image.url, 
                     'profile_first_name': self.account.first_name,
-                    'date_of_created': comment_model.date_of_created,
-                    'text': comment_model.text
+                    'date_of_created': comment_model.date_of_created.strftime('%B %d, %Y'),
+                    'text': comment_model.text,
+                    'book_mark': comment_model.book_mark
                     }}, status=200)
             return JsonResponse({'good': False}, status=200)
 

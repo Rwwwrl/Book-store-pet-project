@@ -187,6 +187,7 @@ img {
     max-height: 65px;
     width: auto;
     margin-bottom: 10px;
+    border-radius: 20%;
 }
 
 .user_name {
@@ -369,8 +370,16 @@ img {
     outline: none;
 }
 
+.form_wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
 
-
-
+.user_mark {
+    font-size: 20px;
+    color: #bbd5af;
+    font-weight: bold;
+}
 
 

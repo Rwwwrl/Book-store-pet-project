@@ -61,10 +61,11 @@
                 </h3>
                 {% for comment in comments  %}
                 <div class="product_review_by_user_container">
-                    <div class="product_review_by_user">
+                    <div class="product_review_by_user" style="background-color: rgba({{ comment.get_self_bg_color }});">
                         <div class="user_info">
                             <img class="user_image" src="{{ comment.user_account.image.url }}" alt="">
                             <div class="user_name">{{ comment.user_account.first_name }}</div>
+                            <div class="user_mark">{{ comment.book_mark }}/5</div>
                         </div>
                         <div class="user_review">
                             <div class="user_review_text">{{ comment.text }}</div>
@@ -84,7 +85,12 @@
                 <h3 class="write_comment">Write a comment:</h3>
                 <form action="{% url 'book_detail' book.slug %}" class='review_form' method="POST">
                     {% csrf_token %}
-                    {{ comment_form|crispy }}
+                    <div class="form_wrapper">
+                        {% if form.errors %}
+                            {{ form.errors }} 
+                        {% endif %}
+                        {{ comment_form|crispy }}
+                    </div>
                     <button type="submit" class="submit_button">&#10148;</button>
                 </form>
             </section>
