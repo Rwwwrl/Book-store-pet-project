@@ -35,9 +35,9 @@ class CommentaryForm(forms.ModelForm):
         self.fields['text'].label = ''
         self.fields['book_mark'].label = ''
         self.fields['text'].widget.attrs.update({'rows': 1, 'placeholder': 'write a comment'})
-        self.fields['book_mark'].widget.attrs.update({'max': 6})
+        self.fields['book_mark'].widget.attrs.update({'max': 6, 'min': 1})
 
-    def clean__book_mark(self, *args, **kwargs):
+    def clean_book_mark(self, *args, **kwargs):
         value = self.cleaned_data['book_mark']
         if value > 5:
             raise forms.ValidationError(f'Max value is 5, you gived: {value}')

@@ -169,7 +169,7 @@ class Commentary(models.Model):
     text = models.TextField(max_length=255, blank=False)
     date_of_created = models.DateField(
         auto_now_add=True, blank=True, null=True)
-    book_mark = models.PositiveIntegerField(default=0)
+    book_mark = models.PositiveIntegerField(default=1)
 
     def __str__(self):
         return f'{self.user_account.first_name}`s comment on {self.book.title} book'

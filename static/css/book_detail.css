@@ -382,4 +382,34 @@ img {
     font-weight: bold;
 }
 
+.errors_wrapper {
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 80%;
+    margin-bottom: 20px;
+    border: 2px solid #f05356;
+    border-radius: 5px;
+}
+
+.error {
+    padding: 5px 0;
+    font-weight: bold;
+    font-style: italic;
+    color: #7e7e7e;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 

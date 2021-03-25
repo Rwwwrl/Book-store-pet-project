@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.views import View
 from django.views.generic import ListView, DetailView
-from django.shortcuts import redirect
+from django.shortcuts import redirect, reverse
 from django.http import JsonResponse
 
 from .models import MainCategory, UnderCategory, Book, SpecialCategory, WishList, Cart, ProductItem
@@ -56,14 +56,16 @@ class BookDetail(UserWishListMixin, DetailView):
                 comment_model.user_account = self.account
                 comment_model.book = self.object
                 comment_model.save()
+                url = reverse('book_comments', kwargs={'book_slug': comment_model.book.slug})
                 return JsonResponse({'good': True, 'comment_info': {
                     'profile_image': self.account.image.url, 
                     'profile_first_name': self.account.first_name,
                     'date_of_created': comment_model.date_of_created.strftime('%B %d, %Y'),
                     'text': comment_model.text,
-                    'book_mark': comment_model.book_mark
+                    'book_mark': comment_model.book_mark,
+                    'url': url
                     }}, status=200)
-            return JsonResponse({'good': False}, status=200)
+            return comment_form.form_invalid()
 
     def is_book_on_wish_list(self):
         return self.wishlist.books.filter(slug=self.object.slug).exists()
