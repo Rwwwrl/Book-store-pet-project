@@ -45,6 +45,10 @@ td, th {
     margin: 0 auto;
 }
 
+.td_price {
+    color: #f05356;
+}
+
 .th_remove {
     background: rgba(200,0, 0, 0.5);
     color: white;

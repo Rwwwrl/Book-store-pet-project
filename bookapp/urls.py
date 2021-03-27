@@ -17,5 +17,6 @@ urlpatterns = [
     path('account_page/checkout_history/', CheckoutsView.as_view(), name='checkouts_page'), 
     path('account_page/cart_page/recalt_cart/', RecalcCartView.as_view(), name='recalc_cart'),
     path('checkout/', CheckoutView.as_view(), name='checkout'),
-    path('<str:book_slug>/comments/', BookComments.as_view(), name='book_comments')
+    path('<str:book_slug>/comments/', BookComments.as_view(), name='book_comments'),
+    path('search_result/', SearhView.as_view(), name='search')
 ]

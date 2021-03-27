@@ -68,6 +68,7 @@ class Book(models.Model):
     slug = models.SlugField(unique=True, blank=True)
     info = models.TextField(max_length=300)
     price = models.DecimalField(max_digits=5, decimal_places=2, default=50.00)
+    mark = models.DecimalField(max_digits=3, decimal_places=2, blank=True, null=True, default=0)
 
     under_category = models.ForeignKey(
         UnderCategory, related_name='book', on_delete=models.CASCADE, null=True, blank=True)
@@ -79,6 +80,10 @@ class Book(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = create_slug(self.title)
+        if self.comments.all().exists():
+            self.mark = round(self.mark / len(self.comments.all()), 2)  
+        else: 
+            self.mark = 0
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):

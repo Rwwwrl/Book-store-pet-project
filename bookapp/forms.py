@@ -48,6 +48,3 @@ class CommentaryForm(forms.ModelForm):
         return JsonResponse({'status': 'form_invalid', 'errors': self.errors})
 
 
-
-
-

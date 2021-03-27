@@ -3,6 +3,7 @@ from django.views import View
 from django.views.generic import ListView, DetailView
 from django.shortcuts import redirect, reverse
 from django.http import JsonResponse
+from django.db.models import Q
 
 from .models import MainCategory, UnderCategory, Book, SpecialCategory, WishList, Cart, ProductItem
 from .forms import UserAccountForm, CheckoutForm, CommentaryForm
@@ -51,20 +52,25 @@ class BookDetail(UserWishListMixin, DetailView):
     def post(self, request, *args, **kwargs):
         if request.is_ajax():
             comment_form = CommentaryForm(request.POST)
+            print(comment_form.is_valid())
             if comment_form.is_valid():
                 comment_model = comment_form.save(commit=False)
                 comment_model.user_account = self.account
                 comment_model.book = self.object
                 comment_model.save()
-                url = reverse('book_comments', kwargs={'book_slug': comment_model.book.slug})
+                mark = comment_model.book_mark
+                self.object.mark += mark
+                self.object.save()
+                url = reverse('book_comments', kwargs={
+                              'book_slug': comment_model.book.slug})
                 return JsonResponse({'good': True, 'comment_info': {
-                    'profile_image': self.account.image.url, 
+                    'profile_image': self.account.image.url,
                     'profile_first_name': self.account.first_name,
                     'date_of_created': comment_model.date_of_created.strftime('%B %d, %Y'),
                     'text': comment_model.text,
                     'book_mark': comment_model.book_mark,
                     'url': url
-                    }}, status=200)
+                }}, status=200)
             return comment_form.form_invalid()
 
     def is_book_on_wish_list(self):
@@ -255,3 +261,23 @@ class BookComments(UserWishListMixin, ListView):
 
     def get_queryset(self, **kwargs):
         return self.comments
+
+
+class SearhView(UserWishListMixin):
+
+    @staticmethod
+    def get_filter_queryset(manager, date):
+        return list(manager.filter(Q(title__icontains=date) | Q(slug__icontains=date)))
+
+    def post(self, request, *args, **kwargs):
+        date = request.POST.get('search', '').lower()
+        under_category_queryset = self.get_filter_queryset(
+            UnderCategory.objects, date)
+        special_category_queryset = self.get_filter_queryset(
+            SpecialCategory.objects, date)
+        book_category_queryset = self.get_filter_queryset(Book.objects, date)
+        under_category_queryset.extend(special_category_queryset)
+        context = self.get_context_data()
+        context['categorys'] = under_category_queryset
+        context['books'] = book_category_queryset
+        return render(request, 'bookapp/search_result_page.html', context=context)

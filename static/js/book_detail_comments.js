@@ -103,7 +103,7 @@ function post_request_and_process_the_result(headers, body) {
 
 button.addEventListener('click', e => {
     e.preventDefault();
-    let form = document.forms[0];
+    let form = document.forms.comment_form;
     let formDate = new FormData(form);
     headers = {
         "X-Requested-With": "XMLHttpRequest",

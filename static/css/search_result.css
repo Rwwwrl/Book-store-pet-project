@@ -1,0 +1,66 @@
+.container--search_result {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.search_result {
+    margin: 10px auto 20px auto; 
+    color: #696969;
+}
+
+.categorys_wrapper {
+    margin: 10px 0;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+}
+
+.under_title {
+    color: #696969;
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.search_category {
+    color: #696969;
+    text-align: center;
+    display: block;
+    flex: 1 1 0;
+    padding: 10px 5px;
+    border: 2px solid #bbd5af;
+    border-radius: 10px;
+    margin: 3px 5px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

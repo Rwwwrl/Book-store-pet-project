@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'css/account_page.css' %}">
+    <link rel="stylesheet" href="{% static 'css/search_result.css' %}">
+{% endblock css %}
+    
+
+{% block main_content %}
+
+<div class="container container--search_result">
+    <h1 class="search_result">Search result:</h1>
+    
+    {% if not categorys and not books %}
+        <h1>Nothing... </h1>
+    {% endif %}
+
+    {% if categorys %}
+    <h3 class="under_title">Categorys:</h3>
+        <div class="categorys_wrapper">
+            {% for category in categorys %}
+            <a href="{{ category.get_absolute_url }}" class="search_category">{{ category.title }}</a>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if books %}
+    <h3 class="under_title">Books:</h3>
+    <table>
+        {% for book in books %}
+        <tr>
+            <td><img class="table_img" src="{{ book.image.url }}" alt=""></td>
+            <td>{{ book.title }}</td>
+            <td>{{ book.price }}$</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+
+
+</div>
+
+{% endblock main_content %}

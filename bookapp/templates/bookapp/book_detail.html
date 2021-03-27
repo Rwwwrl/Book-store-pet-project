@@ -23,7 +23,7 @@
     <section class="book_main_info">
         <div class="book_image">
             <img class="book_image__image" src="{{ book.image.url }}" alt="">
-            
+            <div class="book_mark">User rating: <span class="mark">{{ book.mark }}</span></div> 
             {% if not is_book_on_wish_list %}
                 <a href="{% url 'add_to_wish' book.slug %}" class="add_to_cart_button">Add to wish</a>
             {% endif %}
@@ -71,7 +71,7 @@
             {% endif %}
             <section class="section_review_form">
                 <h3 class="write_comment">Write a comment:</h3>
-                <form action="{% url 'book_detail' book.slug %}" class='review_form' method="POST">
+                <form action="{% url 'book_detail' book.slug %}" class='review_form' method="post" name="comment_form">
                     {% csrf_token %}
                     <div class="form_wrapper">
                         {{ comment_form|crispy }}

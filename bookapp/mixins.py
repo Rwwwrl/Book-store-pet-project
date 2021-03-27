@@ -30,3 +30,7 @@ class UserWishListMixin(ContextMixin, View):
         context['cart'] = self.cart.product_items.all()
         context['cart_final_price'] = self.cart.get_final_param('final_price')
         return context
+    
+
+
+
