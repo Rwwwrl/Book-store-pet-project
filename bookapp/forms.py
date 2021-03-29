@@ -4,14 +4,34 @@ from .models import SpecialCategory, MainCategory, UnderCategory, Book, Cart, Us
 
 from django.http import JsonResponse
 
-class UserAccountForm(forms.ModelForm):
+class FormWithValidator(forms.ModelForm):
+
+    @staticmethod
+    def name_validator(name, error_list):
+        name = name.strip()
+        if len(name.split(' ')) > 1:
+            error_list.append(forms.ValidationError(f'"{name}" must be one word string'))
+            return True
+        return False
+
+    def clean(self):
+        cleaned_data = super().clean()
+        error_list = []
+        first_name = cleaned_data.get('first_name')
+        second_name = cleaned_data.get('last_name')
+        if self.name_validator(first_name, error_list) | self.name_validator(second_name, error_list):
+            raise forms.ValidationError(error_list)
+
+
+
+class UserAccountForm(FormWithValidator):
     
     class Meta:
         model = UserAccount
         fields = ['image', 'first_name', 'last_name', 'email']
     
 
-class CheckoutForm(forms.ModelForm):
+class CheckoutForm(FormWithValidator):
 
     delivery_date = forms.DateField(widget=forms.TextInput(attrs={'type': 'date'}))
 

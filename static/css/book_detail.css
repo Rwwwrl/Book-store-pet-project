@@ -47,7 +47,7 @@ img {
     border-radius: 5px;
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: space-around;
 }
 
 .book_image {
@@ -293,11 +293,12 @@ img {
     display: flex;
     flex-direction: row; 
     justify-content: space-around;
+    margin-bottom: 10px;
 }
 
 .book_card_image {
     max-width: 50px;
-    max-height: 78px;
+    height: 78px;
     width: auto;
 }
 
@@ -309,12 +310,12 @@ img {
 }
 
 .book_card_title {
-    font-size: 15px;
+    font-size: 22px;
     color: #7e7e7e;
 }
 
 .book_card_price {
-    font-size: 22px;
+    /* font-size: 17px; */
     color: #f05356;
 }
 

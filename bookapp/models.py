@@ -68,7 +68,8 @@ class Book(models.Model):
     slug = models.SlugField(unique=True, blank=True)
     info = models.TextField(max_length=300)
     price = models.DecimalField(max_digits=5, decimal_places=2, default=50.00)
-    mark = models.DecimalField(max_digits=3, decimal_places=2, blank=True, null=True, default=0)
+    mark = models.DecimalField(
+        max_digits=3, decimal_places=2, blank=True, null=True, default=0)
 
     under_category = models.ForeignKey(
         UnderCategory, related_name='book', on_delete=models.CASCADE, null=True, blank=True)
@@ -81,8 +82,8 @@ class Book(models.Model):
         if not self.slug:
             self.slug = create_slug(self.title)
         if self.comments.all().exists():
-            self.mark = round(self.mark / len(self.comments.all()), 2)  
-        else: 
+            self.mark = round(self.mark / len(self.comments.all()), 2)
+        else:
             self.mark = 0
         super().save(*args, **kwargs)
 
@@ -134,8 +135,7 @@ class ProductItem(models.Model):
 class UserAccount(models.Model):
     user = models.OneToOneField(
         User, related_name='account', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to="user/", null=True,
-                              blank=True, default='../static/images/default_avatar.jpg')
+    image = models.ImageField(upload_to="user/", null=True, blank=True)
     first_name = models.CharField(max_length=255, null=True, blank=True)
     last_name = models.CharField(max_length=255, null=True, blank=True)
     email = models.EmailField(null=True, blank=True)
@@ -151,10 +151,10 @@ class Checkout(models.Model):
         UserAccount, related_name='checkouts', on_delete=models.CASCADE)
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
-    email = models.EmailField(null=True)
-    address = models.CharField(max_length=255)
+    email = models.EmailField(null=True, blank=True)
+    address = models.CharField(max_length=255, blank=True, null=True)
     commentary = models.TextField(max_length=255, blank=True, null=True)
-    delivery_date = models.DateField(null=True)
+    delivery_date = models.DateField(null=True, blank=True)
     date_of_created = models.DateField(
         auto_now_add=True, blank=True, null=True)
     date_of_changes = models.DateField(auto_now=True, blank=True, null=True)
@@ -187,4 +187,4 @@ class Commentary(models.Model):
             4: '175, 214, 103, .5',
             5: '110, 219, 77, .5',
         }
-        return mark_to_bg[self.book_mark] 
+        return mark_to_bg[self.book_mark]

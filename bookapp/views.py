@@ -87,6 +87,7 @@ class BookDetail(UserWishListMixin, DetailView):
             self.cart)
         context['comments'] = self.object.comments.all().order_by('id')[:5]
         context['comment_form'] = CommentaryForm()
+        context['you_may_also_like_books'] = self.object.under_category.book.exclude(id=self.object.id).order_by('-mark')
         return context
 
 
@@ -167,21 +168,31 @@ class WishListView(UserWishListMixin, ListView):
         return self.wishlist.books.all()
 
 
-class CartView(UserWishListMixin, ListView):
+class CartView(UserWishListMixin):
 
-    context_object_name = 'cart_products'
-    template_name = 'bookapp/account_page/cart_page.html'
+
+    def get(self, request, *args, **kwargs):
+        return render(request, 'bookapp/account_page/cart_page.html', self.get_context_data())
 
     def post(self, request, *args, **kwargs):
-        print('this is post')
-
-    def get_queryset(self, **kwargs):
-        return self.cart.product_items.all()
+        checkout_form = CheckoutForm(request.POST)
+        if checkout_form.is_valid():
+            checkout_model = checkout_form.save(commit=False)
+            checkout_model.cart = self.cart
+            checkout_model.user_account = self.account
+            checkout_model.save()
+            self.cart.is_used = True
+            self.cart.save()
+            return redirect('main_page')
+        context = self.get_context_data()
+        context['checkout_form'] = checkout_form 
+        return render(request, 'bookapp/account_page/cart_page.html', context)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['cart_final_qty'] = self.cart.get_final_param('qty')
         context['checkout_form'] = CheckoutForm(instance=self.account)
+        context['cart_products'] = self.cart.product_items.all()
         return context
 
 
@@ -199,10 +210,7 @@ class RecalcCartView(UserWishListMixin):
 class MyAccountView(UserWishListMixin):
 
     def get(self, request, *args, **kwargs):
-        context = self.get_context_data()
-        if hasattr(self.account, 'image'):
-            context['account_image'] = self.account.image
-        return render(request, 'bookapp/account_page/my_account_page.html', context)
+        return render(request, 'bookapp/account_page/my_account_page.html', self.get_context_data())
 
     def post(self, request, *args, **kwargs):
         form = UserAccountForm(
@@ -210,26 +218,16 @@ class MyAccountView(UserWishListMixin):
         if form.is_valid():
             form.save()
             return redirect('my_account_page')
+        context = self.get_context_data()
+        context['form'] = form
+        return render(request, 'bookapp/account_page/my_account_page.html', context)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['form'] = UserAccountForm(instance=self.account)
+        if hasattr(self.account, 'image'):
+            context['account_image'] = self.account.image
         return context
-
-
-class CheckoutView(UserWishListMixin):
-
-    def post(self, request, *args, **kwargs):
-        checkout_form = CheckoutForm(request.POST)
-
-        if checkout_form.is_valid():
-            checkout_model = checkout_form.save(commit=False)
-            checkout_model.cart = self.cart
-            checkout_model.user_account = self.account
-            checkout_model.save()
-            self.cart.is_used = True
-            self.cart.save()
-        return redirect('main_page')
 
 
 class CheckoutsView(UserWishListMixin, ListView):

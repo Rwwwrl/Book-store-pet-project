@@ -46,14 +46,9 @@
         </div>
     </form>
 
-    <form action="{% url 'checkout' %}" method="POST">
+    <form action="{% url 'cart_page' %}" method="POST">
         {% csrf_token %}
-        
-        {% if checkout_form.errors %}
-            {{ checkout_form.errors }}
-        {% endif %}
-            
-        {{ checkout_form|crispy }}    
+        {{ checkout_form|crispy }}
         <div class="buttons_wrapper">
             <button type="submit" class="checkout">Checkout</button>
         </div>

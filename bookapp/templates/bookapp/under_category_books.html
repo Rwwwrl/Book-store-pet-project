@@ -15,9 +15,14 @@
 {% block products %}
 
     
+    {% if books %}
     {% for book in books  %}
         {% include 'bookapp/include/book_card.html' %}
     {% endfor %}
+    {% else %}
+    <h1 class="nothing">There are no books yet</h1>
+    {% endif %}
+         
         
 
 {% endblock products %}

@@ -83,14 +83,16 @@
         <div class="right_block_info">
             <h3 class="you_may_also_like">You may also like</h3>
             <div class="book_card_container">
+                {% for book in you_may_also_like_books %}
                 <div class="book_card">
-                    <img src="{% static 'images/the hare.jpg' %}" alt="" class="book_card_image">
+                    <img src="{{ book.image.url }}" alt="" class="book_card_image">
                     <div class="book_card_info">
-                        <h3 class="book_card_title">The Hare With Amber</h3>
-                        <div class="book_card_price">$50</div>
-                        <div class="read_more_button">Read more</div>
+                        <h3 class="book_card_title">{{ book.title }}</h3>
+                        <div class="book_card_price">{{ book.price }}$</div>
+                        <a href="{{ book.get_absolute_url }}" class="read_more_button">Read more</a>
                     </div>
                 </div>
+                {% endfor %}
             </div>
         </div>
     </div>

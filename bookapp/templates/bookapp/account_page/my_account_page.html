@@ -1,12 +1,18 @@
 {% extends 'bookapp/account_page/account_page_base.html' %}
 {% load crispy_forms_tags %}
-
+{% load static %}
 
 {% block products %}
 
 
 <form action="{% url 'my_account_page' %}" method="POST" class="account_form" enctype="multipart/form-data">
+    
+    {% if account_image %}
     <img src="{{ account_image.url }}" alt="" class="account_image">
+    {% else %}
+    <img src="{% static 'images/default_avatar.jpg' %}" alt="" class="account_image">
+    {% endif %}
+        
     {% csrf_token %} 
     {{ form|crispy }}
     <button type="submit" class="submit_button">Save</button>

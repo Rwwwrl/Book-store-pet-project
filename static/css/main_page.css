@@ -422,7 +422,13 @@ body {
     justify-content: center;
 }
 
-
+.nothing {
+    margin: 0 auto;
+    text-align: center;
+    color: #bbd5af;
+    font-size: 40px;
+    margin-top: 20px;
+}
 
 
 
