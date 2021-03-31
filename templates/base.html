@@ -26,17 +26,17 @@
 
                         {% if user.is_authenticated %}
                         <a href="{% url 'my_account_page' %}" class="header__item">My account</a>
-                        <div class="header__item">Order status</div>
-                        <div class="header__item">Log out</div>
+                        <a class="header__item" href="{% url 'checkouts_page' %}">Order status</a>
+                        <a class="header__item" href="{% url 'logout' %}">Log out</a>
                         {% else %}
-                        <div class="header__item">Sign in</div>
+                        <a class="header__item" href="{% url 'login' %}">Sign in</a>
                         {% endif %}
                         <div class="header__item">Help</div>
                     </div>
                 </div>
             </header>
 
-
+            
             <div class="search__section">
                 <div class="container container--search">
                     <div class="logo">
@@ -57,7 +57,13 @@
                             <p class="your_cart">Your cart <span class="qty_items">({{ cart|length }} items)</span></p>
                         </div>
                         <div class="row">
-                            <div class="summary_price">{{ cart_final_price }}$</div>
+                            <div class="summary_price">
+                                {% if request.user.is_authenticated %}
+                                {{ cart_final_price }}
+                                {% else %}
+                                0
+                                {% endif %}
+                                $</div>
                             <a href="{% url 'cart_page' %}" class="checkout">Checkout</a>
                         </div>
                     </div>
@@ -65,7 +71,13 @@
                     <div class="wish_list">
                         <a href="{% url 'wish_page' %}"><i class="fas fa-star"></i></a>
                         <div class="list">Wish list</div>
-                        <div class="qty_notification">{{ wishlist|length }}</div>
+                        <div class="qty_notification">
+                            {% if request.user.is_authenticated %}
+                            {{ wishlist|length }}
+                            {% else %}
+                            0
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -128,10 +140,10 @@
     </div>
 
 
-{% block js %}
-    
-{% endblock js %}
-    
+    {% block js %}
+
+    {% endblock js %}
+
 
 </body>
 

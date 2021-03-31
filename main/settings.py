@@ -133,5 +133,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
-
+from django.urls import reverse_lazy
+LOGIN_URL = reverse_lazy('login', current_app='bookapp') 
 

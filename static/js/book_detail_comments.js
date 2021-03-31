@@ -2,6 +2,7 @@ const csrf = document.querySelector('input[name=csrfmiddlewaretoken]').value;
 let button = document.querySelector('.submit_button');
 let product_review = document.querySelector('.product_review')
 let write_a_comment = document.querySelector('.write_comment')
+let textarea = document.querySelector('textarea')
 
 
 let mark_to_bg = {
@@ -11,6 +12,16 @@ let mark_to_bg = {
     4: '175, 214, 103, .5',
     5: '110, 219, 77, .5',
 };
+
+
+textarea.addEventListener('keydown', autosize);             
+function autosize(){
+  var el = this;
+  setTimeout(function(){
+    el.style.cssText = 'height:auto; padding:0';
+    el.style.cssText = 'height:' + el.scrollHeight + 'px';
+  },0);
+}
 
 
 function create_comment(result) {

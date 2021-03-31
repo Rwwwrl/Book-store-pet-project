@@ -280,7 +280,7 @@ body {
 .under_category::after {
     content: '';
     display: block;
-    width: 70%;
+    width: 80%;
     height: 1px;
     background: #9c9b9b;
 }
@@ -301,6 +301,7 @@ body {
 
 .category__item--products {
     padding-left: 15px;
+    max-width: 90%;
 }
 
 .item__link {

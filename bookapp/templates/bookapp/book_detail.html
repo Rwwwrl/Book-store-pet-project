@@ -40,12 +40,14 @@
                                 <h3 class="our_price">Our price :</h3>
                                 <div class="buy_price">${{ book.price }}</div>
                             </div>
+                            {% if request.user.is_authenticated %}
                             <div class="in_wish_cart_block">
                                 {% if is_book_on_wish_list %}
                                 <div class="info__in_cart">in wishlist</div>
                                 {% endif %}
                                 <div class="info__in_cart">in cart: {{ count_in_cart }}</div>
                             </div>
+                            {% endif %}
                         </div>
                     <a class="add_to_cart_button" href="{% url 'add_to_cart' book.slug %}">Add to cart</a>
                 </div>
@@ -69,6 +71,8 @@
                 <a class="see_more_button" href="{% url 'book_comments' book.slug %}">There are {{ book.comments.all|length|add:"-5"}} more commets..</a>
             </div>
             {% endif %}
+            
+            {% if request.user.is_authenticated %}
             <section class="section_review_form">
                 <h3 class="write_comment">Write a comment:</h3>
                 <form action="{% url 'book_detail' book.slug %}" class='review_form' method="post" name="comment_form">
@@ -79,6 +83,8 @@
                     <button type="submit" class="submit_button">&#10148;</button>
                 </form>
             </section>
+            {% endif %}
+                
         </div>
         <div class="right_block_info">
             <h3 class="you_may_also_like">You may also like</h3>

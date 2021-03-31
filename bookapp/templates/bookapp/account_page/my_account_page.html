@@ -6,13 +6,7 @@
 
 
 <form action="{% url 'my_account_page' %}" method="POST" class="account_form" enctype="multipart/form-data">
-    
-    {% if account_image %}
-    <img src="{{ account_image.url }}" alt="" class="account_image">
-    {% else %}
-    <img src="{% static 'images/default_avatar.jpg' %}" alt="" class="account_image">
-    {% endif %}
-        
+    <img src="{{ account.image.url }}" alt="" class="account_image">
     {% csrf_token %} 
     {{ form|crispy }}
     <button type="submit" class="submit_button">Save</button>

@@ -183,8 +183,8 @@ img {
 }
 
 .user_image {
-    max-width: 65px;
-    max-height: 65px;
+    width: 65px;
+    height: 65px;
     width: auto;
     margin-bottom: 10px;
     border-radius: 20%;
@@ -258,6 +258,7 @@ img {
     display: flex;
     flex-direction: row;
     justify-content: center;
+    align-items: flex-start;
 }
 
 .submit_button {
@@ -351,7 +352,7 @@ img {
 }
 
 .textarea.form-control {
-    resize: none;
+    resize: vertical;
     overflow: hidden;
 }
 

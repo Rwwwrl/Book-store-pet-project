@@ -4,21 +4,21 @@ from django.views.generic import ListView, DetailView
 from django.shortcuts import redirect, reverse
 from django.http import JsonResponse
 from django.db.models import Q
+from django.contrib.auth import authenticate, login, logout
 
-from .models import MainCategory, UnderCategory, Book, SpecialCategory, WishList, Cart, ProductItem
-from .forms import UserAccountForm, CheckoutForm, CommentaryForm
-from .mixins import UserWishListMixin
+from .models import MainCategory, UnderCategory, Book, SpecialCategory, WishList, Cart, ProductItem, UserAccount
+from .forms import UserAccountForm, CheckoutForm, CommentaryForm, LoginForm, RegistrForm
+from .mixins import UserWishListMixin, MyLoginRequiredMixin
+
 
 import json
 
 
 class MainPage(UserWishListMixin, ListView):
 
-    # model = MainCategory - сокращенная запись queryset = MainCategory.objects.all
     template_name = 'bookapp/main_page.html'
     context_object_name = 'books'
 
-    # пагинация
     paginate_by = 4
 
     def dispatch(self, request, *args, **kwargs):
@@ -49,10 +49,10 @@ class BookDetail(UserWishListMixin, DetailView):
     template_name = 'bookapp/book_detail.html'
     slug_url_kwarg = 'book_slug'
 
+        
     def post(self, request, *args, **kwargs):
         if request.is_ajax():
             comment_form = CommentaryForm(request.POST)
-            print(comment_form.is_valid())
             if comment_form.is_valid():
                 comment_model = comment_form.save(commit=False)
                 comment_model.user_account = self.account
@@ -76,18 +76,25 @@ class BookDetail(UserWishListMixin, DetailView):
     def is_book_on_wish_list(self):
         return self.wishlist.books.filter(slug=self.object.slug).exists()
 
+    def get_comment_order_by_id(self):
+        return self.object.comments.all().order_by('id')[:5]
+
+    def get_also_like_books_queryset(self):
+        return self.object.under_category.book.exclude(id=self.object.id).order_by('-mark')
+
     def dispatch(self, request, *args, **kwargs):
         self.object = self.get_object()
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['is_book_on_wish_list'] = self.is_book_on_wish_list()
-        context['count_in_cart'] = self.object.get_book_count_in_cart(
-            self.cart)
-        context['comments'] = self.object.comments.all().order_by('id')[:5]
+        if self.user.is_authenticated:
+            context['is_book_on_wish_list'] = self.is_book_on_wish_list()
+            context['count_in_cart'] = self.object.get_book_count_in_cart(
+                self.cart)
+        context['comments'] = self.get_comment_order_by_id() 
         context['comment_form'] = CommentaryForm()
-        context['you_may_also_like_books'] = self.object.under_category.book.exclude(id=self.object.id).order_by('-mark')
+        context['you_may_also_like_books'] = self.get_also_like_books_queryset()
         return context
 
 
@@ -96,7 +103,7 @@ class UnderCategoryBooks(UserWishListMixin, ListView):
     context_object_name = 'books'
     template_name = 'bookapp/under_category_books.html'
 
-    paginate_by = 4
+    paginate_by = 8
 
     def dispatch(self, request, *args, **kwargs):
         self.under_category = UnderCategory.objects.get(
@@ -112,27 +119,27 @@ class UnderCategoryBooks(UserWishListMixin, ListView):
         return context
 
 
-class AddToWishList(UserWishListMixin):
+class AddToWishList(MyLoginRequiredMixin, UserWishListMixin):
 
     def get(self, request, *args, **kwargs):
-        book_slug = kwargs.get('book_slug', '')
+        book_slug = kwargs.get('book_slug')
         if not self.wishlist.books.filter(slug=book_slug).exists():
-            book_model = Book.objects.filter(slug=book_slug)[0]
+            book_model = Book.objects.get(slug=book_slug)
             self.wishlist.books.add(book_model)
         return redirect('book_detail', book_slug=book_slug)
 
 
-class DeleteFromWishList(UserWishListMixin):
+class DeleteFromWishList(MyLoginRequiredMixin, UserWishListMixin):
 
     def get(self, request, *args, **kwargs):
         book_slug = kwargs.get('book_slug', '')
         if self.wishlist.books.filter(slug=book_slug).exists():
-            book_model = Book.objects.filter(slug=book_slug)[0]
+            book_model = Book.objects.get(slug=book_slug)
             self.wishlist.books.remove(book_model)
         return redirect('wish_page')
 
 
-class AddToCart(UserWishListMixin):
+class AddToCart(MyLoginRequiredMixin, UserWishListMixin):
 
     def get(self, request, *args, **kwargs):
         book_slug = kwargs.get('book_slug')
@@ -148,7 +155,7 @@ class AddToCart(UserWishListMixin):
         return redirect('book_detail', book_slug=book_slug)
 
 
-class RemoveFromCart(UserWishListMixin):
+class RemoveFromCart(MyLoginRequiredMixin, UserWishListMixin):
 
     def get(self, request, *args, **kwargs):
         pi_id = kwargs.get('id')
@@ -158,7 +165,7 @@ class RemoveFromCart(UserWishListMixin):
         return redirect('cart_page')
 
 
-class WishListView(UserWishListMixin, ListView):
+class WishListView(MyLoginRequiredMixin, UserWishListMixin, ListView):
 
     context_object_name = 'books'
     template_name = 'bookapp/account_page/wish_cart_page.html'
@@ -168,7 +175,7 @@ class WishListView(UserWishListMixin, ListView):
         return self.wishlist.books.all()
 
 
-class CartView(UserWishListMixin):
+class CartView(MyLoginRequiredMixin, UserWishListMixin):
 
 
     def get(self, request, *args, **kwargs):
@@ -196,7 +203,7 @@ class CartView(UserWishListMixin):
         return context
 
 
-class RecalcCartView(UserWishListMixin):
+class RecalcCartView(MyLoginRequiredMixin, UserWishListMixin):
 
     def post(self, request, *args, **kwargs):
         for id in request.POST:
@@ -207,7 +214,7 @@ class RecalcCartView(UserWishListMixin):
         return redirect('cart_page')
 
 
-class MyAccountView(UserWishListMixin):
+class MyAccountView(MyLoginRequiredMixin, UserWishListMixin):
 
     def get(self, request, *args, **kwargs):
         return render(request, 'bookapp/account_page/my_account_page.html', self.get_context_data())
@@ -216,7 +223,8 @@ class MyAccountView(UserWishListMixin):
         form = UserAccountForm(
             request.POST, request.FILES, instance=self.account)
         if form.is_valid():
-            form.save()
+            model = form.save(commit=False)
+            model.save()
             return redirect('my_account_page')
         context = self.get_context_data()
         context['form'] = form
@@ -225,12 +233,11 @@ class MyAccountView(UserWishListMixin):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['form'] = UserAccountForm(instance=self.account)
-        if hasattr(self.account, 'image'):
-            context['account_image'] = self.account.image
+        context['account'] = self.account
         return context
 
 
-class CheckoutsView(UserWishListMixin, ListView):
+class CheckoutsView(MyLoginRequiredMixin, UserWishListMixin, ListView):
 
     template_name = 'bookapp/account_page/checkouts.html'
     context_object_name = 'checkouts'
@@ -264,18 +271,101 @@ class BookComments(UserWishListMixin, ListView):
 class SearhView(UserWishListMixin):
 
     @staticmethod
-    def get_filter_queryset(manager, date):
+    def get_filter_by_slug_or_title_queryset(manager, date):
         return list(manager.filter(Q(title__icontains=date) | Q(slug__icontains=date)))
 
     def post(self, request, *args, **kwargs):
         date = request.POST.get('search', '').lower()
-        under_category_queryset = self.get_filter_queryset(
+        under_category_queryset = self.get_filter_by_slug_or_title_queryset(
             UnderCategory.objects, date)
-        special_category_queryset = self.get_filter_queryset(
+        special_category_queryset = self.get_filter_by_slug_or_title_queryset(
             SpecialCategory.objects, date)
-        book_category_queryset = self.get_filter_queryset(Book.objects, date)
+        book_category_queryset = self.get_filter_by_slug_or_title_queryset(Book.objects, date)
         under_category_queryset.extend(special_category_queryset)
         context = self.get_context_data()
         context['categorys'] = under_category_queryset
         context['books'] = book_category_queryset
         return render(request, 'bookapp/search_result_page.html', context=context)
+
+
+class LoginView(View):
+    def get(self, request, *args, **kwargs):
+        context = {
+            'login_form': LoginForm()
+        }
+        return render(request, 'bookapp/login.html', context)
+
+    def post(self, request, *args, **kwargs):
+        login_form = LoginForm(request.POST)
+        if login_form.is_valid():
+            username = login_form.cleaned_data['username']
+            password = login_form.cleaned_data['password']
+            user = authenticate(username=username, password=password)
+            if user:
+                login(request, user)
+                return redirect('main_page')
+        context = {
+            'login_form': login_form    
+        }
+        return render(request, 'bookapp/login.html', context)
+
+
+class RegistrView(View):
+
+    def get(self, request, *args, **kwargs):
+        context = {
+            'register_form': RegistrForm()
+        }
+        return render(request, 'bookapp/register_page.html', context)
+
+    def post(self, request, *args, **kwargs):
+        register_form = RegistrForm(request.POST)
+        if register_form.is_valid():
+            user_model = register_form.save(commit=False)
+            user_model.set_password(register_form.cleaned_data['password'])
+            user_model.save()
+            user = authenticate(username=user_model.username, password=register_form.cleaned_data['password'])
+            if user:
+                login(request, user)
+                UserAccount.objects.create(user=user_model, email=user_model.email) 
+                return redirect('main_page')
+        context = {
+            'register_form': register_form
+        }
+        return render(request, 'bookapp/register_page.html', context)
+
+def logout_view(request):
+    logout(request)
+    return redirect('main_page')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

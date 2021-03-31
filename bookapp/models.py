@@ -142,6 +142,11 @@ class UserAccount(models.Model):
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
+    
+    def save(self, *args, **kwargs):
+        if not self.image:
+            self.image = '../static/images/default_avatar.jpg'
+        super().save(*args, **kwargs)
 
 
 class Checkout(models.Model):
@@ -151,10 +156,10 @@ class Checkout(models.Model):
         UserAccount, related_name='checkouts', on_delete=models.CASCADE)
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
-    email = models.EmailField(null=True, blank=True)
-    address = models.CharField(max_length=255, blank=True, null=True)
+    email = models.EmailField()
+    address = models.CharField(max_length=255)
     commentary = models.TextField(max_length=255, blank=True, null=True)
-    delivery_date = models.DateField(null=True, blank=True)
+    delivery_date = models.DateField()
     date_of_created = models.DateField(
         auto_now_add=True, blank=True, null=True)
     date_of_changes = models.DateField(auto_now=True, blank=True, null=True)

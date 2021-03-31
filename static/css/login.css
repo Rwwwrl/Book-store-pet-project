@@ -1,0 +1,40 @@
+small {
+    display: none;
+}
+
+.container--form {
+    margin-top: 100px;
+}
+
+.invalid-feedback {
+    color: white;
+    background: rgba(200,0, 0, 0.5);
+    border-radius: 5px;
+    padding: 5px 10px;
+    margin: 5px auto 5px auto;
+    text-align: center;
+}
+
+
+div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.buttons {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+.container--header {
+    padding: 10px 0;
+    background: #bbd5af;
+}
+
+.to_main_page {
+    margin: 0 auto;
+    color: white;
+    font-size: 20px;
+}
