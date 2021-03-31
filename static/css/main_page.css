@@ -27,6 +27,7 @@ input:focus {
 html,
 body {
 	height: 100%;
+    margin: 0;
 }
 .wrapper {
 	display: flex;
@@ -431,6 +432,31 @@ body {
     margin-top: 20px;
 }
 
+.messages {
+    color: white;
+    font-size: 20px;
+    
+}
+
+.message_info {
+    background: rgba(175, 214, 103, .5);
+    padding: 10px 15px;
+    border-radius: 10px;
+    text-align: center;
+    width: 100%;
+}
+
+.message_success {
+    background: rgba(110, 219, 77, .5);
+    padding: 10px 15px;
+    border-radius: 10px;
+    text-align: center;
+    width: 100%;
+}
+
+.username {
+    font-style: italic;
+}
 
 
 

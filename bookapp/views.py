@@ -5,6 +5,8 @@ from django.shortcuts import redirect, reverse
 from django.http import JsonResponse
 from django.db.models import Q
 from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
+from django.utils.safestring import mark_safe
 
 from .models import MainCategory, UnderCategory, Book, SpecialCategory, WishList, Cart, ProductItem, UserAccount
 from .forms import UserAccountForm, CheckoutForm, CommentaryForm, LoginForm, RegistrForm
@@ -126,6 +128,7 @@ class AddToWishList(MyLoginRequiredMixin, UserWishListMixin):
         if not self.wishlist.books.filter(slug=book_slug).exists():
             book_model = Book.objects.get(slug=book_slug)
             self.wishlist.books.add(book_model)
+        messages.add_message(request, messages.SUCCESS, 'Added to wish list') 
         return redirect('book_detail', book_slug=book_slug)
 
 
@@ -148,10 +151,12 @@ class AddToCart(MyLoginRequiredMixin, UserWishListMixin):
             product_item = ProductItem.objects.create(
                 book=book, qty=1, cart=self.cart
             )
+            messages.add_message(request, messages.SUCCESS, 'Book added to cart')
         else:
             product_item = self.cart.product_items.get(book=book)
             product_item.qty += 1
             product_item.save()
+            messages.add_message(request, messages.INFO, 'The cart already contains this book, the qty has been increased by 1')
         return redirect('book_detail', book_slug=book_slug)
 
 
@@ -190,6 +195,7 @@ class CartView(MyLoginRequiredMixin, UserWishListMixin):
             checkout_model.save()
             self.cart.is_used = True
             self.cart.save()
+            messages.add_message(request, messages.SUCCESS, 'You have succesfullt placed a order')
             return redirect('main_page')
         context = self.get_context_data()
         context['checkout_form'] = checkout_form 
@@ -225,6 +231,7 @@ class MyAccountView(MyLoginRequiredMixin, UserWishListMixin):
         if form.is_valid():
             model = form.save(commit=False)
             model.save()
+            messages.add_message(request, messages.SUCCESS, 'Your profile settings saved')
             return redirect('my_account_page')
         context = self.get_context_data()
         context['form'] = form
@@ -303,6 +310,7 @@ class LoginView(View):
             user = authenticate(username=username, password=password)
             if user:
                 login(request, user)
+                messages.add_message(request, messages.SUCCESS, mark_safe(f'Welcome back <span class="username">@username</span>') )
                 return redirect('main_page')
         context = {
             'login_form': login_form    
@@ -327,7 +335,8 @@ class RegistrView(View):
             user = authenticate(username=user_model.username, password=register_form.cleaned_data['password'])
             if user:
                 login(request, user)
-                UserAccount.objects.create(user=user_model, email=user_model.email) 
+                UserAccount.objects.create(user=user_model, email=user_model.email)
+                messages.add_message(request, messages.SUCCESS, mark_safe(f'Hello! Ty for registration <span class="username">@{user_model.username}</span>')) 
                 return redirect('main_page')
         context = {
             'register_form': register_form

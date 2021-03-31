@@ -82,6 +82,14 @@
                 </div>
             </div>
 
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div{% if message.tags %} class="message_{{ message.tags }}"{% endif %}>{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
             {% block nav_categorys %}
 
             {% endblock nav_categorys %}
@@ -114,6 +122,7 @@
 
                         <div class="product_items_wrapper">
                             <div class="product_items">
+
                                 {% block products %}
                                 {% endblock products %}
                             </div>

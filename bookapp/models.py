@@ -120,7 +120,7 @@ class ProductItem(models.Model):
         Book, related_name='product_item', on_delete=models.CASCADE)
     qty = models.PositiveIntegerField()
     final_price = models.DecimalField(
-        max_digits=5, decimal_places=2, blank=True, null=True)
+        max_digits=10, decimal_places=2, blank=True, null=True)
     cart = models.ForeignKey(
         Cart, related_name='product_items', on_delete=models.CASCADE, null=True)
 
@@ -156,10 +156,10 @@ class Checkout(models.Model):
         UserAccount, related_name='checkouts', on_delete=models.CASCADE)
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
-    email = models.EmailField()
-    address = models.CharField(max_length=255)
+    email = models.EmailField(null=True)
+    address = models.CharField(max_length=255, null=True)
     commentary = models.TextField(max_length=255, blank=True, null=True)
-    delivery_date = models.DateField()
+    delivery_date = models.DateField(null=True)
     date_of_created = models.DateField(
         auto_now_add=True, blank=True, null=True)
     date_of_changes = models.DateField(auto_now=True, blank=True, null=True)
