@@ -23,15 +23,14 @@
             <header>
                 <div class="header--bg">
                     <div class="container container--header">
-
                         {% if user.is_authenticated %}
                         <a href="{% url 'my_account_page' %}" class="header__item">My account</a>
                         <a class="header__item" href="{% url 'checkouts_page' %}">Order status</a>
                         <a class="header__item" href="{% url 'logout' %}">Log out</a>
+                        <p class="header__item">Signed in as <span class="username">@{{request.user.username}}</span></p>
                         {% else %}
                         <a class="header__item" href="{% url 'login' %}">Sign in</a>
                         {% endif %}
-                        <div class="header__item">Help</div>
                     </div>
                 </div>
             </header>

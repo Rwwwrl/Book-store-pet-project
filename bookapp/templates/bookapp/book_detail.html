@@ -17,15 +17,15 @@
         {% if book.special_category %}
         <a href="{% url 'main_page_with_special' book.special_category.slug %}" class="breadcrumbs_item">{{ book.special_category.title }}</a>
         {% endif %}
-        <a href="#" class="breadcrumbs_item">{{ book.under_category.main_category.title }}</a>
-        <a href="{{ book.under_category.get_absolute_url }}" class="breadcrumbs_item">{{ book.under_category.title }}</a>
+        <a href="#" class="breadcrumbs_item">{{ book.bookcategory.main_category.title }}</a>
+        <a href="{{ book.under_category.get_absolute_url }}" class="breadcrumbs_item">{{ book.bookcategory.title }}</a>
     </div>
 
     <section class="book_main_info">
         <div class="book_image">
             <img class="book_image__image" src="{{ book.image.url }}" alt="">
             <div class="book_mark">User rating: <span class="mark">{{ book.mark }}</span></div> 
-            {% if not is_book_on_wish_list %}
+            {% if not is_book_on_wishlist %}
                 <a href="{% url 'add_to_wish' book.slug %}" class="add_to_cart_button">Add to wish</a>
             {% endif %}
                 
@@ -43,7 +43,7 @@
                             </div>
                             {% if request.user.is_authenticated %}
                             <div class="in_wish_cart_block">
-                                {% if is_book_on_wish_list %}
+                                {% if is_book_on_wishlist %}
                                 <div class="info__in_cart">in wishlist</div>
                                 {% endif %}
                                 <div class="info__in_cart">in cart: {{ count_in_cart }}</div>
@@ -87,6 +87,8 @@
             {% endif %}
                 
         </div>
+        
+        {% if you_may_also_like_books %}
         <div class="right_block_info">
             <h3 class="you_may_also_like">You may also like</h3>
             <div class="book_card_container">
@@ -102,8 +104,9 @@
                 {% endfor %}
             </div>
         </div>
+        {% endif %}
     </div>
-
+    
 </div>
 
 {% endblock main_content %}

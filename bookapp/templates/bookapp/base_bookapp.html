@@ -9,11 +9,11 @@
     <p class="main_category_title">{{ main_category.title }}</p>
 
 
-    {% for under_category in main_category.under_category.all %}
-    <a href="{{ under_category.get_absolute_url }}" class="item__link">
+    {% for bookcategory in main_category.bookcategory.all %}
+    <a href="{{ bookcategory.get_absolute_url }}" class="item__link">
         <p
-            class="category__item--products under_category {% if request.path == under_category.get_absolute_url %} active {% endif %}">
-            {{ under_category.title }} ({{ under_category.get_books_count }})</p>
+            class="category__item--products under_category {% if request.path == bookcategory.get_absolute_url %} active {% endif %}">
+            {{ bookcategory.title }} ({{ bookcategory.get_books_count }})</p>
     </a>
 
     {% endfor %}

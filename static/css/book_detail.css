@@ -148,7 +148,9 @@ img {
     display: flex;
     flex-direction: row;
     margin-top: 17px;
-    justify-content: space-between;
+    /* justify-content: space-between; */
+    justify-content: space-around;
+    align-items: flex-start;
 }
 
 .left_block_info {

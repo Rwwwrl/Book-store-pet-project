@@ -25,22 +25,22 @@ function autosize(){
 
 
 function create_comment(result) {
-    let firstname = result['comment_info']['profile_first_name'];
+    let username = result['comment_info']['profile_username'];
     let image_url = result['comment_info']['profile_image'];
     let text = result['comment_info']['text'];
-    let date_of_created = result['comment_info']['date_of_created'];
+    let date_of_creation = result['comment_info']['date_of_creation'];
     let book_mark = result['comment_info']['book_mark'];
     let div = document.createElement('div');
     div.classList.add('product_review_by_user_container');
     div.innerHTML = `<div class="product_review_by_user" style="background-color: rgba(${mark_to_bg[book_mark]})">
                             <div class="user_info">
                                 <img class="user_image" src="${image_url}" alt="">
-                                <div class="user_name">${firstname}</div>
+                                <div class="user_name">${username}</div>
                                 <div class="user_mark">${book_mark}/5</div>
                             </div>
                             <div class="user_review">
                                 <div class="user_review_text">${text}</div>
-                                <div class="user_review_date">${date_of_created}</div>
+                                <div class="user_review_date">${date_of_creation}</div>
                             </div>
                         </div>`
     product_review.append(div);

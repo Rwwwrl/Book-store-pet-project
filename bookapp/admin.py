@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # Register your models here.
-from .models import MainCategory, UnderCategory, SpecialCategory, Book, WishList, UserAccount, ProductItem, Checkout, Cart, Commentary
+from .models import MainCategory, BookCategory, SpecialCategory, Book, WishList, UserAccount, CartItem, Checkout, Cart, Comment
 
 class ModelWithoutSlugAdmin(admin.ModelAdmin):
     exclude = ['slug', ]
@@ -9,26 +9,26 @@ class ModelWithoutSlugAdmin(admin.ModelAdmin):
 
 class MainCategoryAdmin(ModelWithoutSlugAdmin):
     model = MainCategory
+    
+class BookCategoryAdmin(ModelWithoutSlugAdmin):
+    model = BookCategory
 
-
-class UnderCategoryAdmin(ModelWithoutSlugAdmin):
-    model = UnderCategory
-
-
-class BookAdmin(ModelWithoutSlugAdmin):
+class SpecialCategoryAdmin(ModelWithoutSlugAdmin):
+    model = SpecialCategory
+    
+class BookAdmin(admin.ModelAdmin):
     model = Book
+    exclude = ['slug', 'mark', 'wishlist']
 
-# admin.site.register(MainCategory, MainCategoryAdmin)
-# admin.site.register(UnderCategory, UnderCategoryAdmin)
-# admin.site.register(Book, BookAdmin)
 
-admin.site.register(MainCategory),
-admin.site.register(UnderCategory),
-admin.site.register(Book),
-admin.site.register(SpecialCategory),
+
+admin.site.register(MainCategory, MainCategoryAdmin),
+admin.site.register(BookCategory, BookCategoryAdmin),
+admin.site.register(SpecialCategory, SpecialCategoryAdmin),
+admin.site.register(Book, BookAdmin),
 admin.site.register(WishList),
 admin.site.register(UserAccount),
-admin.site.register(ProductItem),
+admin.site.register(CartItem),
 admin.site.register(Checkout),
 admin.site.register(Cart),
-admin.site.register(Commentary)
+admin.site.register(Comment)

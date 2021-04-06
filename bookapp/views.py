@@ -8,8 +8,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.utils.safestring import mark_safe
 
-from .models import MainCategory, UnderCategory, Book, SpecialCategory, WishList, Cart, ProductItem, UserAccount
-from .forms import UserAccountForm, CheckoutForm, CommentaryForm, LoginForm, RegistrForm
+from .models import MainCategory, BookCategory, Book, SpecialCategory, WishList, Cart, CartItem, UserAccount
+from .forms import UserAccountForm, CheckoutForm, CommentForm, LoginForm, RegistrForm
 from .mixins import UserWishListMixin, MyLoginRequiredMixin
 
 
@@ -28,7 +28,7 @@ class MainPage(UserWishListMixin, ListView):
         if special_category_slug:
             self.special_category = SpecialCategory.objects.get(
                 slug=special_category_slug)
-            self.queryset = self.special_category.book.all()
+            self.queryset = self.special_category.books.all()
             self.is_it_special = True
         else:
             self.special_category = None
@@ -54,7 +54,7 @@ class BookDetail(UserWishListMixin, DetailView):
         
     def post(self, request, *args, **kwargs):
         if request.is_ajax():
-            comment_form = CommentaryForm(request.POST)
+            comment_form = CommentForm(request.POST)
             if comment_form.is_valid():
                 comment_model = comment_form.save(commit=False)
                 comment_model.user_account = self.account
@@ -67,22 +67,22 @@ class BookDetail(UserWishListMixin, DetailView):
                               'book_slug': comment_model.book.slug})
                 return JsonResponse({'good': True, 'comment_info': {
                     'profile_image': self.account.image.url,
-                    'profile_first_name': self.account.first_name,
-                    'date_of_created': comment_model.date_of_created.strftime('%B %d, %Y'),
+                    'profile_username': self.user.username,
+                    'date_of_creation': comment_model.date_of_creation.strftime('%B %d, %Y'),
                     'text': comment_model.text,
                     'book_mark': comment_model.book_mark,
                     'url': url
                 }}, status=200)
             return comment_form.form_invalid()
 
-    def is_book_on_wish_list(self):
+    def is_book_on_wishlist(self):
         return self.wishlist.books.filter(slug=self.object.slug).exists()
 
     def get_comment_order_by_id(self):
         return self.object.comments.all().order_by('id')[:5]
 
     def get_also_like_books_queryset(self):
-        return self.object.under_category.book.exclude(id=self.object.id).order_by('-mark')
+        return self.object.bookcategory.books.exclude(id=self.object.id).order_by('-mark')
 
     def dispatch(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -91,33 +91,33 @@ class BookDetail(UserWishListMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.user.is_authenticated:
-            context['is_book_on_wish_list'] = self.is_book_on_wish_list()
+            context['is_book_on_wishlist'] = self.is_book_on_wishlist()
             context['count_in_cart'] = self.object.get_book_count_in_cart(
                 self.cart)
         context['comments'] = self.get_comment_order_by_id() 
-        context['comment_form'] = CommentaryForm()
+        context['comment_form'] = CommentForm()
         context['you_may_also_like_books'] = self.get_also_like_books_queryset()
         return context
 
 
-class UnderCategoryBooks(UserWishListMixin, ListView):
+class BookCategoryBooks(UserWishListMixin, ListView):
 
     context_object_name = 'books'
-    template_name = 'bookapp/under_category_books.html'
+    template_name = 'bookapp/bookcategory_books.html'
 
     paginate_by = 8
 
     def dispatch(self, request, *args, **kwargs):
-        self.under_category = UnderCategory.objects.get(
-            slug=kwargs.get('under_category_slug'))
+        self.bookcategory = BookCategory.objects.get(
+            slug=kwargs.get('bookcategory_slug'))
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self, **kwargs):
-        return self.under_category.book.all()
+        return self.bookcategory.books.all().order_by('-id')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['category_title'] = self.under_category.title
+        context['category_title'] = self.bookcategory.title
         return context
 
 
@@ -147,15 +147,15 @@ class AddToCart(MyLoginRequiredMixin, UserWishListMixin):
     def get(self, request, *args, **kwargs):
         book_slug = kwargs.get('book_slug')
         book = Book.objects.get(slug=book_slug)
-        if not self.cart.product_items.filter(book=book).exists():
-            product_item = ProductItem.objects.create(
+        if not self.cart.cart_items.filter(book=book).exists():
+            cart_item = CartItem.objects.create(
                 book=book, qty=1, cart=self.cart
             )
             messages.add_message(request, messages.SUCCESS, 'Book added to cart')
         else:
-            product_item = self.cart.product_items.get(book=book)
-            product_item.qty += 1
-            product_item.save()
+            cart_item = self.cart.cart_items.get(book=book)
+            cart_item.qty += 1
+            cart_item.save()
             messages.add_message(request, messages.INFO, 'The cart already contains this book, the qty has been increased by 1')
         return redirect('book_detail', book_slug=book_slug)
 
@@ -164,8 +164,8 @@ class RemoveFromCart(MyLoginRequiredMixin, UserWishListMixin):
 
     def get(self, request, *args, **kwargs):
         pi_id = kwargs.get('id')
-        if self.cart.product_items.filter(id=pi_id).exists():
-            pi = ProductItem.objects.get(id=pi_id)
+        if self.cart.cart_items.filter(id=pi_id).exists():
+            pi = CartItem.objects.get(id=pi_id)
             pi.delete()
         return redirect('cart_page')
 
@@ -177,7 +177,7 @@ class WishListView(MyLoginRequiredMixin, UserWishListMixin, ListView):
     paginate_by = 8
 
     def get_queryset(self, **kwargs):
-        return self.wishlist.books.all()
+        return self.wishlist.books.all().order_by('-id')
 
 
 class CartView(MyLoginRequiredMixin, UserWishListMixin):
@@ -195,7 +195,7 @@ class CartView(MyLoginRequiredMixin, UserWishListMixin):
             checkout_model.save()
             self.cart.is_used = True
             self.cart.save()
-            messages.add_message(request, messages.SUCCESS, 'You have succesfullt placed a order')
+            messages.add_message(request, messages.SUCCESS, 'You have succesfully placed a order')
             return redirect('main_page')
         context = self.get_context_data()
         context['checkout_form'] = checkout_form 
@@ -205,7 +205,7 @@ class CartView(MyLoginRequiredMixin, UserWishListMixin):
         context = super().get_context_data(**kwargs)
         context['cart_final_qty'] = self.cart.get_final_param('qty')
         context['checkout_form'] = CheckoutForm(instance=self.account)
-        context['cart_products'] = self.cart.product_items.all()
+        context['cart_products'] = self.cart.cart_items.all()
         return context
 
 
@@ -214,9 +214,9 @@ class RecalcCartView(MyLoginRequiredMixin, UserWishListMixin):
     def post(self, request, *args, **kwargs):
         for id in request.POST:
             if not id.startswith('csrf'):
-                product_item = self.cart.product_items.get(id=id)
-                product_item.qty = int(request.POST[id])
-                product_item.save()
+                cart_item = self.cart.cart_items.get(id=id)
+                cart_item.qty = int(request.POST[id])
+                cart_item.save()
         return redirect('cart_page')
 
 
@@ -283,14 +283,14 @@ class SearhView(UserWishListMixin):
 
     def post(self, request, *args, **kwargs):
         date = request.POST.get('search', '').lower()
-        under_category_queryset = self.get_filter_by_slug_or_title_queryset(
-            UnderCategory.objects, date)
+        bookcategory_queryset = self.get_filter_by_slug_or_title_queryset(
+            BookCategory.objects, date)
         special_category_queryset = self.get_filter_by_slug_or_title_queryset(
             SpecialCategory.objects, date)
         book_category_queryset = self.get_filter_by_slug_or_title_queryset(Book.objects, date)
-        under_category_queryset.extend(special_category_queryset)
+        bookcategory_queryset.extend(special_category_queryset)
         context = self.get_context_data()
-        context['categorys'] = under_category_queryset
+        context['categorys'] = bookcategory_queryset
         context['books'] = book_category_queryset
         return render(request, 'bookapp/search_result_page.html', context=context)
 

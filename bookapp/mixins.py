@@ -1,7 +1,7 @@
 from django.views import View
 from django.views.generic.base import ContextMixin
 
-from .models import MainCategory, UnderCategory, Book, SpecialCategory, WishList, Cart, UserAccount
+from .models import MainCategory, BookCategory, Book, SpecialCategory, WishList, Cart, UserAccount
 from django.conf import settings
 
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -22,7 +22,7 @@ class UserWishListMixin(ContextMixin, View):
                 user=self.user, is_used=False
             )
             # get his account
-            self.account = UserAccount.objects.get(
+            self.account, account_created = UserAccount.objects.get_or_create(
                 user=self.user
             )
         
@@ -33,7 +33,7 @@ class UserWishListMixin(ContextMixin, View):
         context['main_categorys'] = MainCategory.objects.all()
         if self.user.is_authenticated:
             context['wishlist'] = self.wishlist.books.all()
-            context['cart'] = self.cart.product_items.all()
+            context['cart'] = self.cart.cart_items.all()
             context['cart_final_price'] = self.cart.get_final_param('final_price')
         return context
     

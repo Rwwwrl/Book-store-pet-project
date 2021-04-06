@@ -1,7 +1,7 @@
 from django import forms
 from django.http import JsonResponse
 
-from .models import SpecialCategory, MainCategory, UnderCategory, Book, Cart, UserAccount, Checkout, Commentary, User
+from .models import SpecialCategory, MainCategory, BookCategory, Book, Cart, UserAccount, Checkout, Comment, User
 
 import re
 
@@ -41,17 +41,17 @@ class CheckoutForm(FormWithValidator):
     class Meta:
         model = Checkout
         fields = ['first_name', 'last_name', 'email',
-                  'address', 'delivery_date', 'commentary']
+                  'address', 'delivery_date', 'comment']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['commentary'].widget.attrs.update({'rows': 3})
+        self.fields['comment'].widget.attrs.update({'rows': 3})
 
 
-class CommentaryForm(forms.ModelForm):
+class CommentForm(forms.ModelForm):
 
     class Meta:
-        model = Commentary
+        model = Comment
         fields = ['book_mark', 'text']
 
     def __init__(self, *args, **kwargs):
