@@ -14,11 +14,11 @@
 <div class="container container--book_detail">
     <div class="breadcrumbs">
         <a href="{% url 'main_page' %}" class="breadcrumbs_item">Home</a>
-        {% if book.special_category %}
-        <a href="{% url 'main_page_with_special' book.special_category.slug %}" class="breadcrumbs_item">{{ book.special_category.title }}</a>
+        {% if book.specialcategory %}
+        <a href="{% url 'special_category_page' book.specialcategory.slug %}" class="breadcrumbs_item">{{ book.specialcategory.title }}</a>
         {% endif %}
         <a href="#" class="breadcrumbs_item">{{ book.bookcategory.main_category.title }}</a>
-        <a href="{{ book.under_category.get_absolute_url }}" class="breadcrumbs_item">{{ book.bookcategory.title }}</a>
+        <a href="{{ book.bookcategory.get_absolute_url }}" class="breadcrumbs_item">{{ book.bookcategory.title }}</a>
     </div>
 
     <section class="book_main_info">

@@ -1,5 +1,8 @@
 .vscode
 */__pycache__
-*/migrations
+*/migrations/__pycache__/*
+*/migrations/*.py
+!*/migrations/__init__.py
 media
 db.sqlite3
+mark.txt

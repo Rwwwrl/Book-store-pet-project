@@ -7,7 +7,7 @@ from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 
-class UserWishListMixin(ContextMixin, View):
+class UserMixin(ContextMixin, View):
 
     def dispatch(self, request, *args, **kwargs):
         # get user model

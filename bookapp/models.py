@@ -38,7 +38,7 @@ class SpecialCategory(Category):
     """ Специальная категория, например: "Распродажа",  "Хиты продаж" """
 
     def get_absolute_url(self):
-        return reverse('main_page_with_special', kwargs={'special_category_slug': self.slug})
+        return reverse('special_category_page', kwargs={'special_category_slug': self.slug})
 
 
 class MainCategory(Category):
@@ -54,7 +54,7 @@ class BookCategory(Category):
         MainCategory, related_name='bookcategory', on_delete=models.CASCADE, null=True, blank=True)
 
     def get_absolute_url(self):
-        return reverse('bookcategory_books', kwargs={'bookcategory_slug': self.slug})
+        return reverse('bookcategory_page', kwargs={'bookcategory_slug': self.slug})
 
     def get_books_count(self):
         return len(self.books.all())
