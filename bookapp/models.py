@@ -74,7 +74,7 @@ class Book(models.Model):
     """ Модель Книги """
 
     title = models.CharField(max_length=40)
-    image = models.ImageField(default='../media/default.png')
+    image = models.ImageField(default='../static/images/no_photo.jpg')
     slug = models.SlugField(unique=True, blank=True)
     info = models.TextField(max_length=300)
     price = models.DecimalField(max_digits=5, decimal_places=2, default=50.00)
@@ -89,11 +89,13 @@ class Book(models.Model):
         WishList, related_name='books', on_delete=models.CASCADE, blank=True, null=True)
 
     class Meta:
-        ordering = ['-id']
+        ordering = ['id']
 
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = create_slug(self.title)
+        if not self.image:
+            self.image = "../static/images/no_photo.jpg"
         if self.comments.all().exists():
             self.mark = self.get_average_book_mark_value()
         else:
@@ -129,7 +131,7 @@ class Cart(models.Model):
     def __str__(self):
         return f'{self.user.username}`s cart, is_used = {self.is_used}'
 
-    def get_final_param(self, param):
+    def get_cart_result(self, param):
         if not self.cart_items.exists():
             return 0
         final_param = self.cart_items.aggregate(Sum(param))
@@ -195,7 +197,7 @@ class Checkout(models.Model):
         return f'{self.user_account.first_name}`s checkout'
 
     def get_fullprice(self):
-        return self.cart.get_final_param('final_price')
+        return self.cart.get_cart_result('final_price')
 
 
 class Comment(models.Model):
@@ -213,7 +215,7 @@ class Comment(models.Model):
     def __str__(self):
         return f'{self.user_account.user.username}`s comment on {self.book.title} book'
 
-    def get_self_bg_color(self):
+    def get_background_color(self):
         mark_to_bg = {
             1: '173, 41, 31, .5',
             2: '227, 102, 93, .5',

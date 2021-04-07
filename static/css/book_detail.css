@@ -17,9 +17,9 @@ img {
 }
 
 .breadcrumbs_item {
+    display: inline-block;
     color: #a6a6a6;
     font-size: 17px;
-
 }
 
 .breadcrumbs_item::after {

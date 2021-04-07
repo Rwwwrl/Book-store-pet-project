@@ -25,7 +25,7 @@
                     <div class="container container--header">
                         {% if user.is_authenticated %}
                         <a href="{% url 'account_page' %}" class="header__item">My account</a>
-                        <a class="header__item" href="{% url 'checkouts_page' %}">Order status</a>
+                        <a class="header__item" href="{% url 'checkouts_page' %}">Checkout history</a>
                         <a class="header__item" href="{% url 'logout' %}">Log out</a>
                         <p class="header__item">Signed in as <span class="username">@{{request.user.username}}</span></p>
                         {% else %}
@@ -80,7 +80,7 @@
                     </div>
                 </div>
             </div>
-
+            
             {% if messages %}
             <div class="messages">
                 {% for message in messages %}

@@ -16,7 +16,7 @@
     <div class="checkout_item_fullinfo">
         <table>
             
-            {% for product_item in checkout.cart.product_items.all %}
+            {% for product_item in checkout.cart.cart_items.all %}
                 <tr>
                     <td class="checkout_title_td">title: {{ product_item.book.title }}</td>
                     <td class="checkout_title_td">qty: {{ product_item.qty }}</td>

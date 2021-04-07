@@ -17,7 +17,7 @@
         {% if book.specialcategory %}
         <a href="{% url 'special_category_page' book.specialcategory.slug %}" class="breadcrumbs_item">{{ book.specialcategory.title }}</a>
         {% endif %}
-        <a href="#" class="breadcrumbs_item">{{ book.bookcategory.main_category.title }}</a>
+        <p  class="breadcrumbs_item">{{ book.bookcategory.main_category.title }}</p>
         <a href="{{ book.bookcategory.get_absolute_url }}" class="breadcrumbs_item">{{ book.bookcategory.title }}</a>
     </div>
 
@@ -26,7 +26,7 @@
             <img class="book_image__image" src="{{ book.image.url }}" alt="">
             <div class="book_mark">User rating: <span class="mark">{{ book.mark }}</span></div> 
             {% if not is_book_on_wishlist %}
-                <a href="{% url 'add_to_wish' book.slug %}" class="add_to_cart_button">Add to wish</a>
+                <a href="{% url 'add_to_wishlist' book.slug %}" class="add_to_cart_button">Add to wish</a>
             {% endif %}
                 
         </div>

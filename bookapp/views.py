@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.views import View
 from django.views.generic import ListView, DetailView
-from django.shortcuts import redirect, reverse
+from django.shortcuts import redirect, reverse, get_object_or_404
 from django.http import JsonResponse
 from django.db.models import Q
 from django.contrib.auth import authenticate, login, logout
@@ -51,7 +51,8 @@ class BookDetail(UserMixin, DetailView):
         if request.is_ajax():
             comment_form = CommentForm(request.POST)
             if comment_form.is_valid():
-                return services.save_comment_and_return_jsonresponce(self, comment_form)
+                comment_model = services.save_comment_and_return_comment_model(self, comment_form)
+                return services.json_responce(self, comment_model)
             return comment_form.form_invalid()
 
     def dispatch(self, request, *args, **kwargs):
@@ -62,25 +63,23 @@ class BookDetail(UserMixin, DetailView):
         context = super().get_context_data(**kwargs)
         if self.user.is_authenticated:
             context['is_book_on_wishlist'] = services.is_book_on_wishlist(self)
-            context['count_in_cart'] = self.object.get_book_count_in_cart(
-                self.cart)
-        context['comments'] = services.get_comment_order_by_id(self)
+            context['count_in_cart'] = self.object.get_book_count_in_cart(self.cart)
+        context['comments'] = services.get_book_comments(self)
         context['comment_form'] = CommentForm()
-        context['you_may_also_like_books'] = services.get_also_like_books_queryset(
-            instance=self)
+        context['you_may_also_like_books'] = services.get_also_like_books_queryset(self)
+            
         return context
 
 
-class BookCategoryBooks(UserMixin, ListView):
+class BookCategoryDetail(UserMixin, ListView):
 
     context_object_name = 'books'
     template_name = 'bookapp/bookcategory_books.html'
 
-    paginate_by = 8
+    paginate_by = 10
 
     def dispatch(self, request, *args, **kwargs):
-        self.bookcategory = BookCategory.objects.get(
-            slug=kwargs.get('bookcategory_slug'))
+        self.bookcategory = get_object_or_404(BookCategory, slug=kwargs.get('bookcategory_slug'))
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self, **kwargs):
@@ -96,8 +95,7 @@ class AddToWishList(MyLoginRequiredMixin, UserMixin):
 
     def get(self, request, *args, **kwargs):
         book_slug = kwargs.get('book_slug')
-        services.add_book_to_wishlist(self, book_slug)
-        messages.add_message(request, messages.SUCCESS, 'Added to wish list')
+        services.add_book_to_wishlist(self, request, book_slug)
         return redirect('book_detail', book_slug=book_slug)
 
 
@@ -105,7 +103,7 @@ class DeleteFromWishList(MyLoginRequiredMixin, UserMixin):
 
     def get(self, request, *args, **kwargs):
         book_slug = kwargs.get('book_slug', '')
-        services.delete_book_from_wishlist(self, book_slug)
+        services.delete_book_from_wishlist(self, request, book_slug)
         return redirect('wishlist_page')
 
 
@@ -153,7 +151,7 @@ class CartView(MyLoginRequiredMixin, UserMixin):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['cart_final_qty'] = self.cart.get_final_param('qty')
+        context['cart_final_qty'] = self.cart.get_cart_result('qty')
         context['checkout_form'] = CheckoutForm(instance=self.account)
         context['cart_products'] = self.cart.cart_items.all()
         return context
@@ -164,13 +162,14 @@ class RecalcCartView(MyLoginRequiredMixin, UserMixin):
     def post(self, request, *args, **kwargs):
         for id in request.POST:
             if not id.startswith('csrf'):
-                cart_item = self.cart.cart_items.get(id=id)
+                cart_item = get_object_or_404(self.cart.cart_items, id=id)
+                # cart_item = self.cart.cart_items.get(id=id)
                 cart_item.qty = int(request.POST[id])
                 cart_item.save()
         return redirect('cart_page')
 
 
-class MyAccountView(MyLoginRequiredMixin, UserMixin):
+class AccountView(MyLoginRequiredMixin, UserMixin):
 
     def get(self, request, *args, **kwargs):
         return render(request, 'bookapp/account_page/account_page.html', self.get_context_data())
@@ -195,7 +194,7 @@ class MyAccountView(MyLoginRequiredMixin, UserMixin):
         return context
 
 
-class CheckoutsView(MyLoginRequiredMixin, UserMixin, ListView):
+class CheckoutsHistoryView(MyLoginRequiredMixin, UserMixin, ListView):
 
     template_name = 'bookapp/account_page/checkouts.html'
     context_object_name = 'checkouts'
@@ -260,7 +259,7 @@ class LoginView(View):
         return render(request, 'bookapp/login.html', context)
 
 
-class RegistrView(View):
+class RegistrationView(View):
 
     def get(self, request, *args, **kwargs):
         context = {

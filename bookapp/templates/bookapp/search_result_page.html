@@ -29,11 +29,16 @@
     {% if books %}
     <h3 class="under_title">Books:</h3>
     <table>
+        <tr>
+            <th>Image</th>
+            <th>Title</th>
+            <th>Price</th>
+        </tr>
         {% for book in books %}
         <tr>
-            <td><img class="table_img" src="{{ book.image.url }}" alt=""></td>
-            <td>{{ book.title }}</td>
-            <td>{{ book.price }}$</td>
+                <td><a href="{{ book.get_absolute_url }}"><img class="table_img" src="{{ book.image.url }}" alt=""></a></td>  
+                <td>{{ book.title }}</td>
+                <td>{{ book.price }}$</td>
         </tr>
         {% endfor %}
     </table>

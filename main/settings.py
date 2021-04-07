@@ -137,3 +137,4 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 from django.urls import reverse_lazy
 LOGIN_URL = reverse_lazy('login', current_app='bookapp') 
 
+DEFAULT_AUTO_FIELD='django.db.models.AutoField'

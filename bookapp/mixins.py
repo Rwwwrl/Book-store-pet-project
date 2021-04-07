@@ -34,7 +34,7 @@ class UserMixin(ContextMixin, View):
         if self.user.is_authenticated:
             context['wishlist'] = self.wishlist.books.all()
             context['cart'] = self.cart.cart_items.all()
-            context['cart_final_price'] = self.cart.get_final_param('final_price')
+            context['cart_final_price'] = self.cart.get_cart_result('final_price')
         return context
     
 
