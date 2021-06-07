@@ -17,7 +17,9 @@
         {% if book.specialcategory %}
         <a href="{% url 'special_category_page' book.specialcategory.slug %}" class="breadcrumbs_item">{{ book.specialcategory.title }}</a>
         {% endif %}
-        <p  class="breadcrumbs_item">{{ book.bookcategory.main_category.title }}</p>
+        {% if book.bookcategory.main_category.title %}
+        <p class="breadcrumbs_item">{{ book.bookcategory.main_category.title }}</p>
+        {% endif %}
         <a href="{{ book.bookcategory.get_absolute_url }}" class="breadcrumbs_item">{{ book.bookcategory.title }}</a>
     </div>
 

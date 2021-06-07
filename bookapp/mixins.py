@@ -10,18 +10,14 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 class UserMixin(ContextMixin, View):
 
     def dispatch(self, request, *args, **kwargs):
-        # get user model
         self.user = request.user
-        # get his wishlist
         if self.user.is_authenticated:
             self.wishlist, wishlist_created = WishList.objects.get_or_create(
                 user=self.user
             )
-            # get his cart
             self.cart, cart_created = Cart.objects.get_or_create(
                 user=self.user, is_used=False
             )
-            # get his account
             self.account, account_created = UserAccount.objects.get_or_create(
                 user=self.user
             )

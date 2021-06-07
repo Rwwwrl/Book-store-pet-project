@@ -46,7 +46,8 @@ def get_book_comments(instance):
 
 
 def get_also_like_books_queryset(instance):
-    return instance.object.bookcategory.books.exclude(id=instance.object.id).order_by('-mark')
+    if instance.object.bookcategory:
+        return instance.object.bookcategory.books.exclude(id=instance.object.id).order_by('-mark')
 
 
 # AddToWishList

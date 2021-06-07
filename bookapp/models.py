@@ -135,7 +135,7 @@ class Cart(models.Model):
         if not self.cart_items.exists():
             return 0
         final_param = self.cart_items.aggregate(Sum(param))
-        return final_param[param+'__sum']
+        return round(final_param[param+'__sum'], 2)
 
 
 class CartItem(models.Model):

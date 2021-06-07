@@ -67,7 +67,6 @@ class BookDetail(UserMixin, DetailView):
         context['comments'] = services.get_book_comments(self)
         context['comment_form'] = CommentForm()
         context['you_may_also_like_books'] = services.get_also_like_books_queryset(self)
-            
         return context
 
 
@@ -143,7 +142,7 @@ class CartView(MyLoginRequiredMixin, UserMixin):
         if checkout_form.is_valid():
             services.save_checkout(self, checkout_form)
             messages.add_message(request, messages.SUCCESS,
-                                 'You have succesfully placed a order')
+                                 'You have succesfully placed an order')
             return redirect('main_page')
         context = self.get_context_data()
         context['checkout_form'] = checkout_form

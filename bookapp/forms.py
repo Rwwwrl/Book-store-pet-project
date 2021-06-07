@@ -10,11 +10,12 @@ class FormWithValidator(forms.ModelForm):
 
     @staticmethod
     def name_validator(name, error_list):
-        name = name.strip()
-        if len(name.split(' ')) > 1:
-            error_list.append(forms.ValidationError(
-                f'"{name}" must be one word string'))
-            return True
+        if name:
+            name = name.strip()
+            if len(name.split(' ')) > 1:
+                error_list.append(forms.ValidationError(
+                    f'"{name}" must be one word string'))
+                return True
         return False
 
     def clean(self):
