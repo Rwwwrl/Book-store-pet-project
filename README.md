@@ -1,5 +1,5 @@
 # BookStore
-### Книжный интернет на основе django
+### Книжный интернет магазин на основе django
 
 ## Установка
 
@@ -8,25 +8,21 @@
 mkdir project
 cd project
 ```
-Создайте и активируем venv
+Создайте и активируйте venv
 ```sh
 python -m venv env
-source venv/Scripts/activat
+source env/Scripts/activate
 ```
 Склонируйте репозиторий
 ```sh
 git clone git@github.com:Rwwwrl/book_store.git
 cd book_store
 ```
-Устанавите необходимые зависимости
+Установите необходимые зависимости
 ```sh
 pip install -r requirements.txt
 ```
-Обязательно создайте папку ***media***
-```sh
-mkdir media
-```
-Произведите миграции, созданийте админа
+Произведите миграции, создайте админа
 ```
 python manage.py makemigrations
 python manage.py migrate
@@ -67,7 +63,7 @@ book = Book.objects.create(
 ```
 book.image  # <ImageFieldFile: default_book_image.jpg>
 ```
-но мы можем его заменить
+но мы можем ее заменить
 ```
 from django.core.files import File
 
