@@ -74,7 +74,7 @@ class Book(models.Model):
     """ Модель Книги """
 
     title = models.CharField(max_length=40)
-    image = models.ImageField(default='../static/images/no_photo.jpg')
+    image = models.ImageField(default='default_book_image.jpg')
     slug = models.SlugField(unique=True, blank=True)
     info = models.TextField(max_length=300)
     price = models.DecimalField(max_digits=5, decimal_places=2, default=50.00)
@@ -95,7 +95,7 @@ class Book(models.Model):
         if not self.slug:
             self.slug = create_slug(self.title)
         if not self.image:
-            self.image = "../static/images/no_photo.jpg"
+            self.image = "default_book_image.jpg"
         if self.comments.all().exists():
             self.mark = self.get_average_book_mark_value()
         else:
@@ -172,7 +172,7 @@ class UserAccount(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.image:
-            self.image = '../static/images/default_avatar.jpg'
+            self.image = 'default_avatar.jpg'
         super().save(*args, **kwargs)
 
 
