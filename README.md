@@ -72,6 +72,10 @@ with open('test_images/book1.png', 'rb') as test_image:
 
 book.image  # <ImageFieldFile: new_image.png>
 ```
+Выйдем из shell и запустим сервер
+```
+python manage.py runserver
+```
 
 Теперь на [главной странице](http://127.0.0.1:8000/) мы можем увидеть книгу, а также добавленные категории
 
