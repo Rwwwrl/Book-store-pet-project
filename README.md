@@ -83,7 +83,7 @@ python manage.py runserver
 ## Docker
 
 ```sh
-docker build -t <YourName> .
+docker build -t book_store .
 ```
 Это создаст докер-образ, установит необходимые зависимости и произведет миграции.
 Создайте volume для дальнейших сохранений в докер-контейнерах
@@ -93,7 +93,7 @@ docker volume create bookStoreVolume
 
 Запустите докер-образ, в этом примере указан локальные 8000 порт и 8000 порт в докер:
 ```sh
-docker run --rm -p 8000:8000 -v bookStoreVolume:/~/book_store_docker/ <YourName> 
+docker run --rm -p 8000:8000 -v bookStoreVolume:/~/book_store_docker/ book_store 
 ```
 Перейдите на [главную страницу](http://127.0.0.1:8000/)
 
