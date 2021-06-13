@@ -51,7 +51,7 @@ class BookCategory(Category):
     """ Категория, к которой относится сама книга, например: "Фантасика" """
 
     main_category = models.ForeignKey(
-        MainCategory, related_name='bookcategory', on_delete=models.CASCADE, null=True, blank=True)
+        MainCategory, related_name='bookcategories', on_delete=models.CASCADE, blank=True, null=True)
 
     def get_absolute_url(self):
         return reverse('bookcategory_page', kwargs={'bookcategory_slug': self.slug})
@@ -81,10 +81,9 @@ class Book(models.Model):
     mark = models.DecimalField(
         max_digits=3, decimal_places=2, blank=True, null=True, default=0)
 
-    bookcategory = models.ForeignKey(
-        BookCategory, related_name='books', on_delete=models.CASCADE, null=True, blank=True)
-    specialcategory = models.ForeignKey(
-        SpecialCategory, related_name='books', on_delete=models.CASCADE, null=True, blank=True)
+    bookcategories = models.ManyToManyField(
+        BookCategory, related_name='books', blank=True)
+    specialcategories = models.ManyToManyField(SpecialCategory, related_name='books', blank=True)
     wishlist = models.ForeignKey(
         WishList, related_name='books', on_delete=models.CASCADE, blank=True, null=True)
 

@@ -46,9 +46,12 @@ def get_book_comments(instance):
 
 
 def get_also_like_books_queryset(instance):
-    if instance.object.bookcategory:
-        return instance.object.bookcategory.books.exclude(id=instance.object.id).order_by('-mark')
-
+    if instance.object.bookcategories:
+        result = []
+        for bookcategory in instance.object.bookcategories.all():
+            for book in bookcategory.books.exclude(slug=instance.object.slug):
+                result.append(book)
+        return sorted(result, key=lambda book: book.mark)
 
 # AddToWishList
 def add_book_to_wishlist(instance, request, slug):

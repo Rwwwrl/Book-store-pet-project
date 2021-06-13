@@ -14,13 +14,6 @@
 <div class="container container--book_detail">
     <div class="breadcrumbs">
         <a href="{% url 'main_page' %}" class="breadcrumbs_item">Home</a>
-        {% if book.specialcategory %}
-        <a href="{% url 'special_category_page' book.specialcategory.slug %}" class="breadcrumbs_item">{{ book.specialcategory.title }}</a>
-        {% endif %}
-        {% if book.bookcategory.main_category.title %}
-        <p class="breadcrumbs_item">{{ book.bookcategory.main_category.title }}</p>
-        {% endif %}
-        <a href="{{ book.bookcategory.get_absolute_url }}" class="breadcrumbs_item">{{ book.bookcategory.title }}</a>
     </div>
 
     <section class="book_main_info">
@@ -59,36 +52,37 @@
     </section>
 
     <div class="after_main_block">
-        <div class="left_block_info">
-            <section class="product_review">
-                <h3 class="product_review_title">
-                    Product review
-                </h3>
-                {% for comment in comments  %}
-                    {% include 'bookapp/include/comment.html' %}
-                {% endfor %}
+        {% if comments %}
+            <div class="left_block_info">
+                <section class="product_review">
+                        <h3 class="product_review_title">
+                            Product review
+                        </h3>
+                        {% for comment in comments  %}
+                            {% include 'bookapp/include/comment.html' %}
+                        {% endfor %}
+                    
+                </section>
+                {% if book.comments.all|length > 5 %}
+                <div class="see_more_wrapper">
+                    <a class="see_more_button" href="{% url 'book_comments' book.slug %}">There are {{ book.comments.all|length|add:"-5"}} more commets..</a>
+                </div>
+                {% endif %}
                 
-            </section>
-            {% if book.comments.all|length > 5 %}
-            <div class="see_more_wrapper">
-                <a class="see_more_button" href="{% url 'book_comments' book.slug %}">There are {{ book.comments.all|length|add:"-5"}} more commets..</a>
+                {% if request.user.is_authenticated %}
+                <section class="section_review_form">
+                    <h3 class="write_comment">Write a comment:</h3>
+                    <form action="{% url 'book_detail' book.slug %}" class='review_form' method="post" name="comment_form">
+                        {% csrf_token %}
+                        <div class="form_wrapper">
+                            {{ comment_form|crispy }}
+                        </div>
+                        <button type="submit" class="submit_button">&#10148;</button>
+                    </form>
+                </section>
+                {% endif %}
             </div>
-            {% endif %}
-            
-            {% if request.user.is_authenticated %}
-            <section class="section_review_form">
-                <h3 class="write_comment">Write a comment:</h3>
-                <form action="{% url 'book_detail' book.slug %}" class='review_form' method="post" name="comment_form">
-                    {% csrf_token %}
-                    <div class="form_wrapper">
-                        {{ comment_form|crispy }}
-                    </div>
-                    <button type="submit" class="submit_button">&#10148;</button>
-                </form>
-            </section>
-            {% endif %}
-                
-        </div>
+        {% endif %}
         
         {% if you_may_also_like_books %}
         <div class="right_block_info">
