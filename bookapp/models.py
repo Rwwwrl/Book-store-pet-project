@@ -18,7 +18,7 @@ def create_slug(title):
 
 class Category(models.Model):
     """ Абстрактный класс категории для унаследования """
-    
+
     class Meta:
         abstract = True
 
@@ -42,13 +42,13 @@ class SpecialCategory(Category):
 
 
 class MainCategory(Category):
-    """ Главная категория, например: "Бестселлеры" """
+    """ Главная, общая категория, например: "Детективы" """
 
     pass
 
 
 class BookCategory(Category):
-    """ Категория, к которой относится сама книга, например: "Фантасика" """
+    """ Подкатегория, к которой относится сама книга, например: "Детские детективы" """
 
     main_category = models.ForeignKey(
         MainCategory, related_name='bookcategories', on_delete=models.CASCADE, blank=True, null=True)
@@ -83,9 +83,10 @@ class Book(models.Model):
 
     bookcategories = models.ManyToManyField(
         BookCategory, related_name='books', blank=True)
-    specialcategories = models.ManyToManyField(SpecialCategory, related_name='books', blank=True)
+    specialcategories = models.ManyToManyField(
+        SpecialCategory, related_name='books', blank=True)
     wishlist = models.ForeignKey(
-        WishList, related_name='books', on_delete=models.CASCADE, blank=True, null=True)
+        WishList, related_name='books', on_delete=models.SET_NULL, blank=True, null=True)
 
     class Meta:
         ordering = ['id']
@@ -111,6 +112,8 @@ class Book(models.Model):
         return 0
 
     def get_average_book_mark_value(self):
+        if not self.comments.all().exists():
+            return 0
         sum_of_comment_mark = sum(
             [comment.book_mark for comment in self.comments.all()])
         average_value = sum_of_comment_mark / len(self.comments.all())
@@ -123,7 +126,7 @@ class Book(models.Model):
 class Cart(models.Model):
     """ Модель корзины пользователя """
 
-    user = models.ForeignKey(User, related_name='cart',
+    user = models.ForeignKey(User, related_name='carts',
                              on_delete=models.CASCADE)
     is_used = models.BooleanField(default=False)
 
@@ -141,8 +144,8 @@ class CartItem(models.Model):
     """ Модель товара в корзине """
 
     book = models.ForeignKey(
-        Book, related_name='cart_item', on_delete=models.CASCADE)
-    qty = models.PositiveIntegerField()
+        Book, related_name='cart_items', on_delete=models.CASCADE)
+    qty = models.PositiveIntegerField(default=0)
     final_price = models.DecimalField(
         max_digits=10, decimal_places=2, blank=True, null=True)
     cart = models.ForeignKey(
@@ -177,7 +180,7 @@ class UserAccount(models.Model):
 
 class Checkout(models.Model):
     """ Модель заказа """
-    
+
     cart = models.OneToOneField(
         Cart, related_name='checkout', on_delete=models.CASCADE)
     user_account = models.ForeignKey(
@@ -200,7 +203,7 @@ class Checkout(models.Model):
 
 
 class Comment(models.Model):
-    """ Модель комментария к книги """
+    """ Модель комментария к книгe """
 
     book = models.ForeignKey(
         Book, related_name='comments', on_delete=models.CASCADE)
