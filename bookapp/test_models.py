@@ -6,7 +6,7 @@ from decimal import *
 import sys
 import os
 
-from .models import Book, Cart, CartItem, SpecialCategory, MainCategory, BookCategory, User, UserAccount, WishList, Comment
+from .models import Book, Cart, CartItem, SpecialCategory, MainCategory, BookCategory, User, UserAccount, WishList, Comment, Checkout
 
 
 sys.path.append('..')
@@ -318,6 +318,49 @@ class CommentTestCase(TestCase):
             book_mark=5
         )
         self.assertEqual(comment.get_background_color(), '110, 219, 77, .5')
+
+
+class CheckoutTestCase(TestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        Book.objects.create(title='title', price=Decimal('100.00'))
+        Book.objects.create(title='title1', price=Decimal('150.00'))
+        user = User.objects.create(username='user', password='123456')
+        UserAccount.objects.create(user=user)
+        Cart.objects.create(user=user) 
+        Cart.objects.create(user=user)
+
+    def setUp(self):
+        self.cart = Cart.objects.first()
+        self.user_account = UserAccount.objects.first()
+        self.checkout = Checkout.objects.create(
+            cart=self.cart,
+            user_account=self.user_account,
+            first_name='first_name',
+            last_name='last_name',
+        )
+
+    def test_get_fullprice(self):
+        self.assertEqual(self.checkout.get_fullprice(), 0)
+        for i in range(2):
+            cart_item = CartItem.objects.create(
+                book=Book.objects.get(id=i+1),
+                qty=1,
+                cart=self.cart
+            )
+        self.assertEqual(self.checkout.get_fullprice(), Decimal('250.00'))
+
+    def test_set_and_delete_cart(self):
+        another_cart = Cart.objects.last()
+        self.checkout.cart = another_cart 
+        self.checkout.save(update_fields=['cart'])
+        self.assertEqual(self.checkout.cart, another_cart)
+        self.assertEqual(another_cart.checkout, self.checkout)
+        another_cart.delete()
+        self.assertEqual(len(Checkout.objects.all()), 0)
+
+
 
 
 
