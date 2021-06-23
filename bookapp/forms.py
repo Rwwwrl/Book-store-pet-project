@@ -113,22 +113,17 @@ class RegistrForm(forms.ModelForm):
             errors.append(forms.ValidationError(
                 f'Username "{username}" is already taken'))
         if len(username.strip().split(' ')) > 1:
-            errors.append(forms.ValidationError('Username must be one word string'))
+            errors.append(forms.ValidationError(
+                'Username must be one word string'))
         if errors:
             raise forms.ValidationError(errors)
         return username
 
     def clean_email(self):
         email = self.cleaned_data['email']
-        reg_result = re.search(r'\w+@\w+\.\w+', email).group(0)
-        errors = []
-        if reg_result != email:
-            errors.append(forms.ValidationError('Write valid email'))
         if UserAccount.objects.filter(email=email):
-            errors.append(forms.ValidationError(
-                f'User with "{email}" email already exist'))
-        if errors:
-            raise forms.ValidationError(errors)
+            raise forms.ValidationError(
+                f'User with "{email}" email already exist')
         return email
 
     def clean_confirm_password(self):
