@@ -2,7 +2,7 @@ from bookapp.views import *
 
 
 # MainPage
-def get_queryset_for_main_page(instance, slug):
+def get_queryset_for_main_page(instance, slug=''):
     if slug:
         instance.special_category = get_object_or_404(
             SpecialCategory, slug=slug)
@@ -52,6 +52,8 @@ def get_also_like_books_queryset(instance):
             for book in bookcategory.books.exclude(slug=instance.object.slug):
                 result.append(book)
         return sorted(result, key=lambda book: book.mark)
+    return []    
+
 
 # AddToWishList
 def add_book_to_wishlist(instance, request, slug):
@@ -109,18 +111,18 @@ def save_checkout(instance, form):
 
 
 # SearchView
-def get_filter_by_slug_or_title_queryset(manager, date):
-    return list(manager.filter(Q(title__icontains=date) | Q(slug__icontains=date)))
+def get_filtered_by_slug_or_title_queryset(manager, data):
+    return list(manager.filter(Q(title__icontains=data) | Q(slug__icontains=data)))
 
 
 def get_search_results(data):
-    bookcategory_queryset = get_filter_by_slug_or_title_queryset(
-        BookCategory.objects, data)
-    special_category_queryset = get_filter_by_slug_or_title_queryset(
-        SpecialCategory.objects, data)
-    book_queryset = get_filter_by_slug_or_title_queryset(
+    categorys_for_search = [BookCategory, SpecialCategory]
+    category_queryset = []
+    book_queryset = get_filtered_by_slug_or_title_queryset(
         Book.objects, data)
-    category_queryset = bookcategory_queryset + special_category_queryset
+    for field in categorys_for_search:
+            queryset = get_filtered_by_slug_or_title_queryset(field.objects, data) 
+            category_queryset.extend(queryset)
     return [category_queryset, book_queryset]
 
 
@@ -131,8 +133,11 @@ def authenticate_and_login_user(request, username, password, message_text):
         login(request, user)
         messages.add_message(request, messages.SUCCESS,
                              mark_safe(message_text))
-
-
+        return True
+    else:
+        messages.add_message(request, messages.ERROR, 'You had not logged, wrong data')
+        return False
+        
 # RegistrationView
 def register_user(form):
     user_model = form.save(commit=False)

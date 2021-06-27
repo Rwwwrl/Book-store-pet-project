@@ -38,3 +38,23 @@ div {
     color: white;
     font-size: 20px;
 }
+
+.messages {
+    color: white;
+    font-size: 20px;
+    
+}
+
+.message_error {
+    background: #831c1c;
+    padding: 10px 15px;
+    border-radius: 10px;
+    text-align: center;
+    width: 100%;
+}
+
+
+
+
+
+

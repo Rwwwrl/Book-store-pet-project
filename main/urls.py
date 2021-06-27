@@ -9,6 +9,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', redirect_to_main_page),
     path('', include('bookapp.urls')),
+    path('test/', include('tests.urls')),
 ]
 
 if settings.DEBUG:

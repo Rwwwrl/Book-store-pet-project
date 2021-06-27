@@ -249,9 +249,12 @@ class LoginView(View):
             username = login_form.cleaned_data['username']
             password = login_form.cleaned_data['password']
             message_text = f'Welcome back <span class="username">@username</span>'
-            services.authenticate_and_login_user(
+            is_loged = services.authenticate_and_login_user(
                 request, username, password, message_text)
-            return redirect('main_page')
+            if is_loged:
+                return redirect('main_page')
+            else:
+                return redirect('login')
         context = {
             'login_form': login_form
         }
