@@ -1,380 +1,521 @@
-from django.test import TestCase
-from django.urls import reverse
+from django.http import response
+from django.test import TestCase, RequestFactory
+from django.urls.base import reverse
+from django.http.response import JsonResponse
 from django.contrib.messages import get_messages
-from django.contrib import auth
 
 import json
 from datetime import date, timedelta
 
-from .models import Checkout, Comment, User, SpecialCategory, Book
-from .forms import CommentForm
-from services.services import *
+from .models import Book, BookCategory, CartItem, Comment, SpecialCategory, User, UserAccount, WishList
+from .views import AccountView, AddToCart, AddToWishList, BookCategoryDetail, BookComments, BookDetail, CheckoutsHistoryView, DeleteFromWishList, MainPage, RemoveFromCart
+from .test_services import get_messages_from_storage
 
 
-def get_messages_from_storage(storage):
-    return [str(i) for i in storage]
-
-
-class ClassForTestServices():
-    pass
-
-
-class UserMixinTestCase(TestCase):
+class MainPageViewTestCase(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        user = User.objects.create_user(username='username', password='123')
-        cls.url = reverse('tests:user-mixin-test')
-
-    def test_context_without_login(self):
-        r = self.client.get(self.url)
-        self.assertEqual('AnonymousUser', str(r.context['user']))
-        self.assertNotIn('wishlist_from_dispatch', r.context)
-        self.assertNotIn('cart_from_dispatch', r.context)
-        self.assertNotIn('account_from_dispatch', r.context)
-
-        self.assertIn('main_categorys', r.context)
-
-    def test_mixin_with_login(self):
-        login = self.client.login(username='username', password='123')
-        r = self.client.get(self.url)
-        self.assertEqual('username', str(r.context['user']))
-        self.assertIn('wishlist_from_dispatch', r.context)
-        self.assertIn('cart_from_dispatch', r.context)
-        self.assertIn('account_from_dispatch', r.context)
-
-        self.assertIn('wishlist', r.context)
-        self.assertIn('cart', r.context)
-        self.assertIn('cart_final_price', r.context)
-
-
-class QuerySetForMainPageTestCase(TestCase):
-
-    @classmethod
-    def setUpTestData(cls):
-        cls.sp = SpecialCategory.objects.create(title='title', slug='slug')
-        for i in range(3):
-            book = Book.objects.create(title=f'title{i}', info=f'info{i}')
-            cls.sp.books.add(book)
-
-    def setUp(self):
-        self.instance = ClassForTestServices()
-
-    def test_with_slug(self):
-        slug = 'slug'
-        get_queryset_for_main_page(self.instance, slug)
-        self.assertEqual(self.instance.special_category, self.sp)
-        self.assertQuerysetEqual(self.instance.queryset, self.sp.books.all())
-        self.assertTrue(self.instance.is_it_special)
-
-    def test_without_slug(self):
-        books = Book.objects.all()
-        get_queryset_for_main_page(self.instance)
-        self.assertIsNone(self.instance.special_category)
-        self.assertQuerysetEqual(self.instance.queryset, books)
-        self.assertFalse(self.instance.is_it_special)
-
-
-class SaveCommentAndReturnCommentModelTestCase(TestCase):
-
-    @classmethod
-    def setUpTestData(cls):
-        valid_data = {
-            'book_mark': 5,
-            'text': 'test'
-        }
-        cls.form = CommentForm(valid_data)
-        cls.instance = ClassForTestServices()
-        cls.instance.object = Book.objects.create(title='title', info='info')
-        cls.user = User.objects.create_user(username='user', password='123')
-        acc = UserAccount.objects.create(user=cls.user)
-        cls.instance.account = acc
-
-    def test_save_comment_and_return_comment_model_method(self):
-        model = save_comment_and_return_comment_model(self.instance, self.form)
-        self.assertTrue(isinstance(model, Comment))
-        self.assertEqual(model.user_account, self.instance.account)
-        self.assertEqual(model.book, self.instance.object)
-
-
-class JsonResponceTestCase(SaveCommentAndReturnCommentModelTestCase):
-
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-        cls.instance.user = cls.user
         for i in range(5):
-            comment = Comment.objects.create(
-                book=cls.instance.object,
-                user_account=cls.instance.account,
-                book_mark=i
+            Book.objects.create(
+                title=f'title{i}',
+                info='info'
             )
-            cls.instance.object.comments.add(comment)
+        cls.url = reverse('main_page')
+        SpecialCategory.objects.create(
+            title='sp_title',
+            slug='sp_slug'
+        )
 
-        wishlist = WishList.objects.create(user=cls.instance.user)
-        wishlist.books.add(cls.instance.object)
-        cls.instance.wishlist = wishlist
+    def test_right_url_and_reverse(self):
+        r = self.client.get('/main-page/')
+        self.assertEqual(r.status_code, 200)
+        r = self.client.get(self.url)
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.resolver_match.func.__name__,
+                         MainPage.as_view().__name__)
 
-    def test_json_responce_method(self):
-        model = save_comment_and_return_comment_model(self.instance, self.form)
-        url = reverse('book_comments', kwargs={
-            'book_slug': model.book.slug})
-        r = json_responce(self.instance, model)
+    def test_right_url_and_reverse_with_special_category_slug(self):
+        r = self.client.get('/main_page/sp_slug/')
+        self.assertEqual(r.status_code, 200)
+        r = self.client.get(reverse('special_category_page', kwargs={
+            'special_category_slug': 'sp_slug'
+        }))
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.resolver_match.func.__name__,
+                         MainPage.as_view().__name__)
+
+    def test_template_name(self):
+        r = self.client.get(self.url)
+        self.assertTemplateUsed(r, 'bookapp/main_page.html')
+
+    def test_pagination(self):
+        r = self.client.get(self.url)
+        self.assertIn('is_paginated', r.context)
+        self.assertTrue(r.context['is_paginated'])
+        self.assertEqual(len(r.context['page_obj']), 4)
+        r_next_page = self.client.get(self.url + '?page=2')
+        self.assertEqual(r_next_page.status_code, 200)
+        self.assertIn('is_paginated', r_next_page.context)
+        self.assertTrue(r.context['is_paginated'])
+        self.assertEqual(len(r_next_page.context['page_obj']), 1)
+
+    def test_default_context(self):
+        r = self.client.get(self.url)
+        self.assertIn('special_categorys', r.context)
+        self.assertIn('is_it_special', r.context)
+        self.assertIn('special_category', r.context)
+        self.assertQuerysetEqual(
+            r.context['special_categorys'], SpecialCategory.objects.all())
+
+    def test_context_without_special_category_slug(self):
+        r = self.client.get(self.url)
+        self.assertFalse(r.context['is_it_special'])
+        self.assertIsNone(r.context['special_category'])
+
+    def test_context_with_special_category_slug(self):
+        r = self.client.get('/main_page/sp_slug/')
+        special_category = SpecialCategory.objects.get(slug='sp_slug')
+        self.assertEqual(r.status_code, 200)
+        self.assertTrue(r.context['is_it_special'])
+        self.assertEqual(r.context['special_category'], special_category)
+
+
+class BookDetailViewTestCase(TestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        Book.objects.create(title='title', slug='slug')
+        User.objects.create_user(username='user', password='123456')
+        cls.url = reverse('book_detail', kwargs={'book_slug': 'slug'})
+
+    def test_url_and_reverse(self):
+        r = self.client.get('/main-page/books/slug/')
+        self.assertEqual(r.status_code, 200)
+        r_reverse = self.client.get(self.url)
+        self.assertEqual(r.status_code, 200)
+
+        self.assertEqual(r.resolver_match.func.__name__, BookDetail.as_view().__name__) 
+        self.assertEqual(r_reverse.resolver_match.func.__name__, BookDetail.as_view().__name__) 
+
+    def test_template(self):
+        r = self.client.get(self.url)
+        self.assertTemplateUsed(r, 'bookapp/book_detail.html')
+
+    def test_default_context_without_login(self):
+        r = self.client.get(self.url)
+        self.assertEqual(str(r.context['user']), 'AnonymousUser')
+        self.assertIn('comments', r.context)
+        self.assertIn('comment_form', r.context)
+        self.assertIn('you_may_also_like_books', r.context)
+        self.assertIn('book', r.context)
+
+    def test_context_with_login(self):
+        self.client.login(username='user', password='123456')
+        r = self.client.get(self.url)
+        self.assertIn('is_book_on_wishlist', r.context)
+        self.assertIn('count_in_cart', r.context)
+
+    def test_post_request_without_login(self):
+        r = self.client.post(self.url,  HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(r.status_code, 302)
+        self.assertRedirects(r, '/login/')
+
+    def test_post_invalid_form_request_with_login(self):
+        self.client.login(username='user', password='123456')
+        invalid_data = {'book_mark': 6, 'text': 'test'}
+        r = self.client.post(self.url, invalid_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertTrue(isinstance(r, JsonResponse))
+        json_data = json.loads(r.content)
+        self.assertEqual(json_data['status'], 'form_invalid')
+        self.assertEqual(json_data['errors']['book_mark'], ['Max value is 5, you gived: 6'])
+
+    def test_post_valid_form_request_with_login(self):
+        self.client.login(username='user', password='123456')
+        valid_data = {'book_mark': 5, 'text': 'test'}
+        r = self.client.post(self.url, valid_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertTrue(isinstance(r, JsonResponse))
         json_data = json.loads(r.content)
         self.assertTrue(json_data['good'])
-        comment_info = json_data['comment_info']
-        self.assertEqual(comment_info['profile_image'],
-                         self.instance.account.image.url)
-        self.assertEqual(
-            comment_info['profile_username'], self.instance.user.username)
-        self.assertEqual(
-            comment_info['date_of_creation'], model.date_of_creation.strftime('%B %d, %Y'))
-        self.assertEqual(comment_info['text'], model.text)
-        self.assertEqual(comment_info['book_mark'], model.book_mark)
-        self.assertEqual(comment_info['url'], url)
-
-    def test_is_book_on_wishlist(self):
-        self.assertTrue(is_book_on_wishlist(self.instance))
-
-    def test_get_book_comments(self):
-        r = self.instance.object.comments.all().order_by('id')[:5]
-        self.assertQuerysetEqual(get_book_comments(self.instance), r)
-
-    def test_get_also_like_books_queryset_with_bookcategories(self):
-        querySet = []
-        for i in range(2):
-            bc = BookCategory.objects.create(title=f'title{i}')
-            for j in range(2):
-                book = Book.objects.create(title=f'title{j}', info=f'info{j}')
-                bc.books.add(book)
-                querySet.append(book)
-            self.instance.object.bookcategories.add(bc)
-        r = sorted(querySet, key=lambda book: book.mark)
-        self.assertEqual(r, get_also_like_books_queryset(self.instance))
-
-    def test_get_also_like_books_queryset_without_bookcategories(self):
-        self.assertEqual(len(self.instance.object.bookcategories.all()), 0)
-        self.assertEqual(get_also_like_books_queryset(self.instance), [])
+        self.assertIn('comment_info', json_data)
 
 
-class AddOrDeleteBookFromWishListTestCase(TestCase):
+class BookCategoryDetailViewTestCase(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.instance = ClassForTestServices()
-        user = User.objects.create_user(username='user', password='123')
+        category = BookCategory.objects.create(title='title', slug='book_category_slug')
+        for i in range(12):
+            book = Book.objects.create(
+                title=f'title{i}',
+                info='info'
+            )
+            category.books.add(book)
+        cls.url = reverse('bookcategory_page', kwargs={'bookcategory_slug': 'book_category_slug'})
+
+    def test_url_and_reverse(self):
+        r = self.client.get('/main-page/book_category_slug/')
+        self.assertEqual(r.status_code, 200)
+        r_reverse = self.client.get(self.url) 
+        self.assertEqual(r_reverse.status_code, 200)
+        self.assertEqual(r.resolver_match.func.__name__, BookCategoryDetail.as_view().__name__)
+        self.assertEqual(r_reverse.resolver_match.func.__name__, BookCategoryDetail.as_view().__name__)
+
+    def test_template(self):
+        r = self.client.get(self.url)
+        self.assertTemplateUsed(r, 'bookapp/bookcategory_books.html')
+
+    def test_context(self):
+        r = self.client.get(self.url)
+        self.assertIn('books', r.context)
+        self.assertIn('category_title', r.context)
+
+    def test_paginate(self):
+        r = self.client.get(self.url)
+        self.assertIn('is_paginated', r.context)
+        self.assertEqual(len(r.context['books']), 10)
+        r_next_page = self.client.get(self.url + '?page=2')
+        self.assertEqual(r_next_page.status_code, 200) 
+        self.assertIn('is_paginated', r_next_page.context)
+        self.assertEqual(len(r_next_page.context['books']), 2)
+
+
+class AddAndDeleteFromWishListViewTestCase(TestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        Book.objects.create(title='title', slug='slug')
+        User.objects.create_user(username='user', password='123456')
+        cls.add_url = reverse('add_to_wishlist', kwargs={'book_slug': 'slug'})
+        cls.remove_url = reverse('remove_from_wishlist', kwargs={'book_slug': 'slug'})
+
+    def test_url_and_reverse_with_login(self):
+        self.client.login(username='user', password='123456')
+
+        r_add = self.client.get('/add_to_wishlist/slug/')        
+        r_add_reverse = self.client.get(self.add_url)
+        self.assertEqual(r_add.status_code, 302)
+        self.assertRedirects(r_add, reverse('book_detail', kwargs={'book_slug': 'slug'}))
+        self.assertEqual(r_add_reverse.status_code, 302)
+        self.assertRedirects(r_add_reverse, reverse('book_detail', kwargs={'book_slug': 'slug'}))
+        self.assertEqual(r_add.resolver_match.func.__name__, AddToWishList.as_view().__name__)
+        self.assertEqual(r_add_reverse.resolver_match.func.__name__, AddToWishList.as_view().__name__)
+
+        r_remove = self.client.get('/remove_from_wishlist/slug/')        
+        r_remove_reverse = self.client.get(self.remove_url)
+        self.assertEqual(r_remove.status_code, 302)
+        self.assertRedirects(r_remove, reverse('wishlist_page'))
+        self.assertEqual(r_remove_reverse.status_code, 302)
+        self.assertRedirects(r_remove_reverse, reverse('wishlist_page'))
+        self.assertEqual(r_remove.resolver_match.func.__name__, DeleteFromWishList.as_view().__name__)
+        self.assertEqual(r_remove_reverse.resolver_match.func.__name__, DeleteFromWishList.as_view().__name__)
+
+    def test_reverse_without_login(self):
+        r_add = self.client.get(self.add_url)
+        self.assertEqual(r_add.status_code, 302)
+        self.assertRedirects(r_add, '/login/?next=/add_to_wishlist/slug/')
+
+        r_remove = self.client.get(self.remove_url)
+        self.assertEqual(r_remove.status_code, 302)
+        self.assertRedirects(r_remove, '/login/?next=/remove_from_wishlist/slug/')
+
+
+class AddAndRemoveFromCartViewTestCase(TestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        Book.objects.create(title='title', slug='slug')
+        User.objects.create_user(username='user', password='123456')
+        cls.add_url = reverse('add_to_cart', kwargs={'book_slug': 'slug'})
+        cls.remove_url = reverse('remove_from_cart', kwargs={'id': 1})
+
+    def test_url_and_reverse_with_login(self):
+        self.client.login(username='user', password='123456')
+
+        r_add = self.client.get('/add_to_cart/slug/')        
+        r_add_reverse = self.client.get(self.add_url)
+        self.assertEqual(r_add.status_code, 302)
+        self.assertRedirects(r_add, reverse('book_detail', kwargs={'book_slug': 'slug'}))
+        self.assertEqual(r_add_reverse.status_code, 302)
+        self.assertRedirects(r_add_reverse, reverse('book_detail', kwargs={'book_slug': 'slug'}))
+        self.assertEqual(r_add.resolver_match.func.__name__, AddToCart.as_view().__name__)
+        self.assertEqual(r_add_reverse.resolver_match.func.__name__, AddToCart.as_view().__name__)
+
+        r_remove = self.client.get('/remove_from_cart/1/')        
+        r_remove_reverse = self.client.get(self.remove_url)
+        self.assertEqual(r_remove.status_code, 302)
+        self.assertRedirects(r_remove, reverse('cart_page'))
+        self.assertEqual(r_remove_reverse.status_code, 302)
+        self.assertRedirects(r_remove_reverse, reverse('cart_page'))
+        self.assertEqual(r_remove.resolver_match.func.__name__, RemoveFromCart.as_view().__name__)
+        self.assertEqual(r_remove_reverse.resolver_match.func.__name__, RemoveFromCart.as_view().__name__)
+
+    def test_reverse_without_login(self):
+        r_add = self.client.get(self.add_url)
+        self.assertEqual(r_add.status_code, 302)
+        self.assertRedirects(r_add, '/login/?next=/add_to_cart/slug/')
+
+        r_remove = self.client.get(self.remove_url)
+        self.assertEqual(r_remove.status_code, 302)
+        self.assertRedirects(r_remove, '/login/?next=/remove_from_cart/1/')
+
+
+class WishListViewTestCase(TestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        user = User.objects.create_user(username='user', password='123456')
         wishlist = WishList.objects.create(user=user)
-        cls.instance.wishlist = wishlist
-        books = []
+        for i in range(9):
+            book = Book.objects.create(title=f'title{i}', info='info') 
+            wishlist.books.add(book) 
+        cls.url = reverse('wishlist_page')
 
-        for i in range(2):
-            b = Book.objects.create(
-                title=f'title{i}', slug=f'slug{i}', info=f'info{i}')
-            books.append(b)
+    def test_url_and_reverse_without_login(self):
+        r = self.client.get('/account_page/wishlist/') 
+        self.assertEqual(r.status_code, 302)
+        self.assertRedirects(r, '/login/?next=/account_page/wishlist/')
 
-        cls.instance.wishlist.books.add(books[0])
+    def test_url_and_reverse_with_login(self):
+        self.client.login(username='user', password='123456')
+        r = self.client.get('/account_page/wishlist/') 
+        self.assertEqual(r.status_code, 200)
+        r_reverse = self.client.get(self.url) 
+        self.assertEqual(r_reverse.status_code, 200)
 
-    def test_add_book_that_already_in_wishlist(self):
-        book = Book.objects.get(slug='slug0')
-        self.assertIn(book, self.instance.wishlist.books.all())
-        r = self.client.get(
-            reverse('add_to_wishlist', kwargs={'book_slug': 'slug0'}))
-        add_book_to_wishlist(self.instance, r.wsgi_request, 'slug0')
-        storage = get_messages(r.wsgi_request)
-        messages = get_messages_from_storage(storage)
-        self.assertEqual(len(messages), 1)
-        self.assertEqual(
-            messages[0], 'You already added this book to wishlist')
+    def test_template(self):
+        self.client.login(username='user', password='123456')
+        r = self.client.get(self.url)
+        self.assertTemplateUsed(r, 'bookapp/account_page/wish_page.html')
 
-    def test_add_book_that_not_in_wishlist(self):
-        book = Book.objects.get(slug='slug1')
-        self.assertNotIn(book, self.instance.wishlist.books.all())
-        r = self.client.get(
-            reverse('add_to_wishlist', kwargs={'book_slug': 'slug1'}))
-        add_book_to_wishlist(self.instance, r.wsgi_request, 'slug1')
-        storage = get_messages(r.wsgi_request)
-        messages = get_messages_from_storage(storage)
-        self.assertEqual(len(messages), 1)
-        self.assertEqual(messages[0], 'Added to wish list')
-        self.assertIn(book, self.instance.wishlist.books.all())
+    def test_paginate(self):
+        self.client.login(username='user', password='123456')
+        r = self.client.get(self.url)
+        self.assertIn('books', r.context)
+        self.assertIn('is_paginated', r.context)
+        self.assertEqual(len(r.context['books']), 8)
 
-    def test_delete_book_that_in_wishlist(self):
-        book = Book.objects.get(slug='slug0')
-        self.assertIn(book, self.instance.wishlist.books.all())
-        r = self.client.get(reverse('remove_from_wishlist',
-                            kwargs={'book_slug': 'slug0'}))
-        delete_book_from_wishlist(self.instance, r.wsgi_request, 'slug0')
-        self.assertNotIn(book, self.instance.wishlist.books.all())
-
-    def test_delete_book_that_not_in_wishlist(self):
-        book = Book.objects.get(slug='slug1')
-        self.assertNotIn(book, self.instance.wishlist.books.all())
-        r = self.client.get(reverse('remove_from_wishlist',
-                            kwargs={'book_slug': 'slug1'}))
-        delete_book_from_wishlist(self.instance, r.wsgi_request, 'slug1')
-        storage = get_messages(r.wsgi_request)
-        messages = get_messages_from_storage(storage)
-        self.assertEqual(len(messages), 1)
-        self.assertEqual(messages[0], 'This book isn`t on your wishlist')
-        self.assertNotIn(book, self.instance.wishlist.books.all())
+        r_next_page = self.client.get(self.url + '?page=2')
+        self.assertEqual(r_next_page.status_code, 200)
+        self.assertIn('is_paginated', r.context)
+        self.assertEqual(len(r_next_page.context['books']), 1)
 
 
-class AddOrRemoveBookFromCartTestCase(TestCase):
+class CartViewTestCase(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        user = User.objects.create_user(username='user', password='123')
-        cart = Cart.objects.create(user=user)
-        cls.instance = ClassForTestServices()
-        cls.instance.cart = cart
-        cls.book = Book.objects.create(
-            title='title',
-            slug='slug',
-            info='info'
-        )
+        User.objects.create_user(username='user', password='123456')
+        cls.url = reverse('cart_page')
 
-    def test_add_book_that_not_in_cart(self):
-        self.assertEqual(
-            len(self.instance.cart.cart_items.filter(book__slug='slug')), 0)
-        r = self.client.get(
-            reverse('add_to_cart', kwargs={'book_slug': 'slug'}))
-        add_book_to_cart(self.instance, r.wsgi_request, 'slug')
-        self.assertEqual(
-            len(self.instance.cart.cart_items.filter(book__slug='slug')), 1)
-        cart_item = self.instance.cart.cart_items.get(book__slug='slug')
-        self.assertEqual(cart_item.qty, 1)
-        storage = get_messages(r.wsgi_request)
-        messages = get_messages_from_storage(storage)
-        self.assertEqual(len(messages), 1)
-        self.assertEqual(messages[0], 'Book added to cart')
+    def test_reverse_and_url_without_login(self):
+        r = self.client.get('/account_page/cart_page/')
+        r_reverse = self.client.get(self.url)
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(r_reverse.status_code, 302)
+        self.assertRedirects(r, '/login/?next=/account_page/cart_page/')
+        self.assertRedirects(r_reverse, '/login/?next=/account_page/cart_page/')
 
-    def test_add_book_that_already_in_cart(self):
-        cart_item = CartItem.objects.create(
-            book=self.book, qty=1, cart=self.instance.cart
-        )
-        self.assertEqual(
-            len(self.instance.cart.cart_items.filter(book__slug='slug')), 1)
-        self.assertEqual(cart_item.qty, 1)
-        r = self.client.get(
-            reverse('add_to_cart', kwargs={'book_slug': 'slug'}))
-        add_book_to_cart(self.instance, r.wsgi_request, 'slug')
-        cart_item2 = self.instance.cart.cart_items.get(book=self.book)
-        self.assertEqual(cart_item2.qty, 2)
-        self.assertEqual(
-            len(self.instance.cart.cart_items.filter(book__slug='slug')), 1)
-        storage = get_messages(r.wsgi_request)
-        messages = get_messages_from_storage(storage)
-        self.assertEqual(len(messages), 1)
-        self.assertEqual(
-            messages[0], 'The cart already contains this book, the qty has been increased by 1')
+    def test_template(self):
+        self.client.login(username='user', password='123456')
+        r = self.client.get(self.url)
+        self.assertTemplateUsed(r, 'bookapp/account_page/cart_page.html')
 
-    def test_remove_book_from_cart(self):
-        cart_item = CartItem.objects.create(
-            book=self.book, qty=1, cart=self.instance.cart
-        )
-        self.assertTrue(self.instance.cart.cart_items.filter(id=cart_item.id).exists()) 
-        remove_book_from_cart(self.instance, cart_item.id)
-        self.assertFalse(self.instance.cart.cart_items.filter(id=cart_item.id).exists()) 
-        self.assertFalse(CartItem.objects.filter(book=self.book, cart=self.instance.cart).exists())
+    def test_context(self):
+        self.client.login(username='user', password='123456')
+        r = self.client.get(self.url)
+        self.assertIn('cart_final_qty', r.context)
+        self.assertIn('cart_products', r.context)
+        self.assertIn('checkout_form', r.context)
 
-
-class CartViewServicesTestData(TestCase):
-
-    @classmethod
-    def setUpTestData(cls):
-        cls.instance = ClassForTestServices()
-        user = User.objects.create_user(username='user', password='123')
-        user_acc = UserAccount.objects.create(user=user)
-        cart = Cart.objects.create(user=user)
-        cls.instance.account = user_acc
-        cls.instance.cart = cart
-
-    def test_save_checkout(self):
-        valid_data = {
-            'first_name': 'test',
-            'last_name': 'test',
+    def test_post_with_invalid_form(self):
+        self.client.login(username='user', password='123456')
+        invalid_data = {
+            'first_name': 'test_name test_name',
+            'last_name': 'test_lastname test_lastname',
             'email': 'test@test.com',
             'address': 'test address',
             'delivery_date': date.today() + timedelta(days=1)
         }
-        self.assertFalse(self.instance.cart.is_used)
-        self.assertFalse(Checkout.objects.all().exists())
-        form = CheckoutForm(valid_data)
-        save_checkout(self.instance, form)
-        checkout_model = Checkout.objects.first()
-        self.assertEqual(checkout_model.cart, self.instance.cart)
-        self.assertEqual(checkout_model.user_account, self.instance.account)
-        self.assertTrue(self.instance.cart.is_used)
+        r = self.client.post(self.url, invalid_data)
+        self.assertEqual(r.status_code, 200)
+        self.assertTemplateUsed(r, 'bookapp/account_page/cart_page.html')
 
+        self.assertFormError(r, 'checkout_form', None, ['"test_name test_name" must be one word string', '"test_lastname test_lastname" must be one word string'])
 
-class SearchViewServicesTestCase(TestCase):
-
-    @classmethod
-    def setUpTestData(cls):
-        BookCategory.objects.create(title='title')
-        BookCategory.objects.create(title='title_1', slug='title')
-
-    def test_get_filtered_by_slug_or_title_queryset(self):
-        r = [BookCategory.objects.get(title='title'), BookCategory.objects.get(slug='title')] 
-        self.assertEqual(r, get_filtered_by_slug_or_title_queryset(BookCategory.objects, 'title'))
-
-    def test_get_search_results_func(self):
-        data = 'title'
-        bookcategory_queryset = get_filtered_by_slug_or_title_queryset(
-                BookCategory.objects, data)
-        special_category_queryset = get_filtered_by_slug_or_title_queryset(
-            SpecialCategory.objects, data)
-        book_queryset = get_filtered_by_slug_or_title_queryset(
-            Book.objects, data)
-        category_queryset = bookcategory_queryset + special_category_queryset
-        r = [category_queryset, book_queryset]
-        self.assertEqual(r, get_search_results(data))
-
-
-class LoginViewServicesTestCase(TestCase):
-    
-    @classmethod
-    def setUpTestData(cls):
-        cls.user = User.objects.create_user(username='user', password='123')
-
-    def test_authenticate_and_login_user_with_valid_data(self):
-        r = self.client.get(reverse('login'))
-        self.assertFalse(r.wsgi_request.user.is_authenticated)
-        authenticate_and_login_user(r.wsgi_request, 'user', '123', 'message_text')
-        self.assertTrue(r.wsgi_request.user.is_authenticated)
-        self.assertEqual(r.wsgi_request.user.username, 'user')
-
-        storage = get_messages(r.wsgi_request) 
-        messages = get_messages_from_storage(storage)
-        self.assertEqual(len(messages), 1)
-        self.assertEqual(messages[0], 'message_text')
-
-    def test_authenticate_and_login_user_with_invalid_data(self):
-        r = self.client.get(reverse('login')) 
-        self.assertFalse(r.wsgi_request.user.is_authenticated)
-        authenticate_and_login_user(r.wsgi_request, 'wrong_user', '123', 'message_text')
-        self.assertFalse(r.wsgi_request.user.is_authenticated)
-
-        storage = get_messages(r.wsgi_request) 
-        messages = get_messages_from_storage(storage)
-        self.assertEqual(len(messages), 1)
-        self.assertEqual(messages[0], 'You had not logged, wrong data')
-
-
-class RegistrationViewServicesTestCase(TestCase):
-
-    def test_register_user_func(self):
+    def test_post_with_valid_form(self):
+        self.client.login(username='user', password='123456')
         valid_data = {
-            'username': 'username',
-            'email': 'email@email.com',
-            'password': '123456',
-            'confirm_password': '123456'
+            'first_name': 'test_name',
+            'last_name': 'test_lastname',
+            'email': 'test@test.com',
+            'address': 'test address',
+            'delivery_date': date.today() + timedelta(days=1)
         }
-        form = RegistrForm(valid_data)
-        self.assertEqual(len(User.objects.all()), 0)
-        user_model = register_user(form)
-        self.assertEqual(len(User.objects.all()), 1)
-        self.assertEqual(User.objects.get(username='username'), user_model) 
+        r = self.client.post(self.url, valid_data)
+        self.assertEqual(r.status_code, 302)
+        self.assertRedirects(r, reverse('main_page'))
+        storage = get_messages(r.wsgi_request)
+        messages = get_messages_from_storage(storage) 
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(messages[0], 'You have succesfully placed an order')
 
+
+class RecalcCartView(TestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        User.objects.create_user(username='user', password='123456')
+        cls.url = reverse('recalc_cart')
+
+    def test_url_and_reverse_with_login(self):
+        self.client.login(username='user', password='123456')
+        r = self.client.post('/account_page/cart_page/recalt_cart/')
+
+        r_reverse = self.client.post(self.url)
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(r_reverse.status_code, 302)
+        self.assertRedirects(r, reverse('cart_page'))
+        self.assertRedirects(r_reverse, reverse('cart_page'))
+
+    def test_url_without_login(self):
+        r = self.client.post(self.url)
+        self.assertEqual(r.status_code, 302)
+        self.assertRedirects(r, '/login/?next=/account_page/cart_page/recalt_cart/')
+    
+    def test_post_with_invalid_data(self):
+        invalid_data = {
+            '1': 2
+        }
+        self.client.login(username='user', password='123456')
+        r = self.client.post(self.url, invalid_data)
+        self.assertEqual(r.status_code, 404)
+
+
+class AccountViewTestCase(TestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        User.objects.create_user(username='user', password='123456')
+        cls.url = reverse('account_page')
+
+    def test_reverse_and_url_with_login(self):
+        self.client.login(username='user', password='123456')
+        r = self.client.get('/account_page/account/') 
+        r_reverse = self.client.get(self.url)
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r_reverse.status_code, 200)
+        self.assertEqual(r.resolver_match.func.__name__, AccountView.as_view().__name__)        
+        self.assertEqual(r_reverse.resolver_match.func.__name__, AccountView.as_view().__name__)        
+
+    def test_redirect_to_login_page(self):
+        r = self.client.get(self.url)
+        self.assertEqual(r.status_code, 302)
+        self.assertRedirects(r, '/login/?next=/account_page/account/')
+
+    def test_right_template_used(self):
+        self.client.login(username='user', password='123456')
+        r = self.client.get(self.url)
+        self.assertTemplateUsed(r, 'bookapp/account_page/account_page.html')
+
+    def test_context(self):
+        self.client.login(username='user', password='123456')
+        r = self.client.get(self.url)
+        self.assertIn('form', r.context)
+        self.assertIn('account', r.context)
+
+    def test_post_with_valid_form(self):
+        valid_data = {
+            'first_name': 'test',
+            'last_name': 'test'
+        }
+        self.client.login(username='user', password='123456')
+        r = self.client.post(self.url, valid_data)
+        self.assertEqual(r.status_code, 302)
+        self.assertRedirects(r, reverse('account_page'))
+        
+        storage = get_messages(r.wsgi_request)
+        messages = get_messages_from_storage(storage)
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(messages[0], 'Your profile settings saved')
+
+    def test_post_with_invalid_form(self):
+        invalid_data = {
+            'first_name': 'test test',
+            'last_name': 'test'
+        }
+        self.client.login(username='user', password='123456')
+        r = self.client.post(self.url, invalid_data)
+        self.assertTemplateUsed(r, 'bookapp/account_page/account_page.html') 
+        self.assertFormError(r, 'form', None, ['"test test" must be one word string'])
+
+
+class CheckoutsHistoryViewTestCase(TestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        User.objects.create_user(username='user', password='123456')
+        cls.url = reverse('checkouts_page') 
+
+    def test_url_with_login(self):
+        self.client.login(username='user', password='123456')
+        r = self.client.get('/account_page/checkout_history/')
+        r_reverse = self.client.get(self.url)
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r_reverse.status_code, 200)
+
+        self.assertEqual(r.resolver_match.func.__name__, CheckoutsHistoryView.as_view().__name__)
+
+    def test_redirect_without_login(self):
+        r = self.client.get(self.url)
+        self.assertEqual(r.status_code, 302)
+        self.assertRedirects(r, '/login/?next=/account_page/checkout_history/') 
+
+    def test_context_and_template(self):
+        self.client.login(username='user', password='123456')
+        r = self.client.get(self.url)
+        self.assertTemplateUsed(r, 'bookapp/account_page/checkouts.html')         
+        self.assertIn('checkouts', r.context)
+
+
+class BookCommentsTestCase(TestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        user = User.objects.create_user(username='user', password='123456')
+        book = Book.objects.create(title='title', slug='slug', info='info')
+        user_account = UserAccount.objects.create(user=user)
+        for i in range(6):
+            comment = Comment.objects.create(
+                book=book,
+                user_account=user_account,
+                text='text'
+            )
+        cls.url = reverse('book_comments', kwargs={'book_slug': 'slug'})
+    
+    def test_reverse_and_url(self):
+        r = self.client.get('/slug/comments/')
+        r_reverse = self.client.get(self.url)
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r_reverse.status_code, 200)
+
+    def test_template(self):
+        r = self.client.get(self.url)
+        self.assertTemplateUsed(r, 'bookapp/book_comments.html')
+
+    def test_context(self):
+        r = self.client.get(self.url)
+        self.assertIn('book', r.context)
+        self.assertIn('comments', r.context)
+        
+    def test_pagination(self):
+        r = self.client.get(self.url)
+        self.assertIn('is_paginated', r.context)
+        self.assertEqual(len(r.context['comments']), 5)
+        r_next_page = self.client.get(self.url + '?page=2')
+        self.assertIn('is_paginated', r_next_page.context)
+        self.assertEqual(len(r_next_page.context['comments']), 1)
+
+ 
 
 

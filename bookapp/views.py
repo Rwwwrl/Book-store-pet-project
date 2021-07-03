@@ -1,3 +1,4 @@
+from django.http.response import HttpResponseRedirect
 from django.shortcuts import render
 from django.views import View
 from django.views.generic import ListView, DetailView
@@ -7,6 +8,7 @@ from django.db.models import Q
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.utils.safestring import mark_safe
+from django.conf import settings
 
 import json
 import sys
@@ -20,10 +22,18 @@ from services import services
 sys.path.append('..')
 
 
+def login_required_decorator(func, url=settings.LOGIN_URL):
+    def inner(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return func(self, request, *args, **kwargs)
+        else:
+            return redirect(url)
+    return inner
+
+
 class MainPage(UserMixin, ListView):
 
     template_name = 'bookapp/main_page.html'
-    context_object_name = 'books'
 
     paginate_by = 4
 
@@ -47,6 +57,7 @@ class BookDetail(UserMixin, DetailView):
     template_name = 'bookapp/book_detail.html'
     slug_url_kwarg = 'book_slug'
 
+    @login_required_decorator
     def post(self, request, *args, **kwargs):
         if request.is_ajax():
             comment_form = CommentForm(request.POST)
@@ -160,13 +171,8 @@ class RecalcCartView(MyLoginRequiredMixin, UserMixin):
 
     def post(self, request, *args, **kwargs):
         for id in request.POST:
-            if not id.startswith('csrf'):
-                cart_item = get_object_or_404(self.cart.cart_items, id=id)
-                # cart_item = self.cart.cart_items.get(id=id)
-                cart_item.qty = int(request.POST[id])
-                cart_item.save()
+            services.update_cart_item_quantity(id, self.cart, request.POST)
         return redirect('cart_page')
-
 
 class AccountView(MyLoginRequiredMixin, UserMixin):
 
@@ -212,7 +218,7 @@ class BookComments(UserMixin, ListView):
 
     def dispatch(self, *args, **kwargs):
         self.book = Book.objects.get(slug=kwargs.get('book_slug'))
-        self.comments = self.book.comments.all()
+        self.comments = self.book.comments.all().order_by('id')
         return super().dispatch(*args, **kwargs)
 
     def get_context_data(self, **kwargs):

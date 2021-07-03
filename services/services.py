@@ -110,6 +110,12 @@ def save_checkout(instance, form):
     instance.cart.save()
 
 
+def update_cart_item_quantity(id, cart, id_data):
+    if not id.startswith('csrf'):
+        cart_item = get_object_or_404(cart.cart_items, id=id)
+        cart_item.qty = int(id_data[id])
+        cart_item.save(update_fields=['qty',])
+
 # SearchView
 def get_filtered_by_slug_or_title_queryset(manager, data):
     return list(manager.filter(Q(title__icontains=data) | Q(slug__icontains=data)))
