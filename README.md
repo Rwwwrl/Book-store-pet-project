@@ -49,15 +49,15 @@ book_category = BookCategory.objects.create(title='Детские детекти
 ```
 Добавим в раздел главных категорий книжную категорию
 ```
-main_category.bookcategory.add(book_category)
+main_category.bookcategories.add(book_category)
 ```
 Создадим экземляр книги
 ```
 book = Book.objects.create(
     title='Тайна домика на пляже',
     info='Саманте Вулф и Элли Паркер невероятно повезло!...',
-    price=50,
-    bookcategory=book_category)
+    price=50)
+book_category.books.add(book)
 ```
 По умолчанию у книги уже есть обложка
 ```
